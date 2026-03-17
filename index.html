@@ -2,21 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Sky Dash</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sky Dash V2</title>
 <style>
   :root {
-    --bg1: #0b1020;
-    --bg2: #111933;
-    --panel: rgba(12, 18, 38, 0.72);
+    --bg0: #070b18;
+    --bg1: #0f1630;
+    --bg2: #15214a;
+    --panel: rgba(10, 16, 34, 0.78);
     --line: rgba(255, 255, 255, 0.08);
-    --text: #f3f6ff;
-    --muted: #aab6dc;
-    --accent: #76e4ff;
-    --accent2: #a46dff;
-    --danger: #ff617d;
+    --text: #edf3ff;
+    --muted: #9aa9d4;
+    --accent: #79e7ff;
+    --accent2: #9e7bff;
+    --green: #73ffc2;
     --gold: #ffd76a;
-    --good: #7fffb8;
+    --red: #ff657d;
+    --rare: #ffcc6a;
+    --epic: #f27dff;
   }
 
   * {
@@ -30,13 +33,11 @@
     height: 100%;
     overflow: hidden;
     background:
-      radial-gradient(circle at top, rgba(118, 228, 255, 0.14), transparent 30%),
-      radial-gradient(circle at 80% 20%, rgba(164, 109, 255, 0.16), transparent 25%),
-      linear-gradient(180deg, var(--bg2), var(--bg1));
+      radial-gradient(circle at top, rgba(121, 231, 255, 0.14), transparent 26%),
+      radial-gradient(circle at 80% 20%, rgba(158, 123, 255, 0.14), transparent 20%),
+      linear-gradient(180deg, var(--bg2), var(--bg0));
     color: var(--text);
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    user-select: none;
-    touch-action: none;
   }
 
   #app {
@@ -59,149 +60,186 @@
 
   .topbar {
     position: absolute;
-    top: 16px;
-    left: 16px;
-    right: 16px;
-    display: flex;
-    justify-content: space-between;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
     gap: 12px;
-    align-items: flex-start;
+    align-items: start;
   }
 
-  .card {
+  .panel {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
     backdrop-filter: blur(12px);
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
   }
 
-  .hudGroup {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .hudBox {
+  .statsPanel {
     padding: 12px 14px;
-    min-width: 118px;
   }
 
-  .hudLabel {
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tiny {
     color: var(--muted);
-    margin-bottom: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
 
-  .hudValue {
+  .big {
     font-size: 24px;
-    font-weight: 800;
+    font-weight: 900;
     line-height: 1;
   }
 
-  .dashWrap {
-    min-width: 180px;
-    padding: 12px 14px;
-  }
-
-  .dashBar {
+  .meter {
     width: 100%;
     height: 10px;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.08);
     margin-top: 8px;
   }
 
-  .dashFill {
-    width: 100%;
+  .fill {
     height: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    box-shadow: 0 0 20px rgba(118, 228, 255, 0.45);
   }
 
-  .centerPanel {
+  #hpFill {
+    background: linear-gradient(90deg, #ff6b8c, #ff9f7d);
+  }
+
+  #shieldFill {
+    background: linear-gradient(90deg, #8bb3ff, #79e7ff);
+  }
+
+  #xpFill {
+    background: linear-gradient(90deg, #79e7ff, #9e7bff);
+  }
+
+  #bossFill {
+    background: linear-gradient(90deg, #ffd76a, #ff657d);
+  }
+
+  .subGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .pill {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+  }
+
+  .pill .value {
+    font-size: 18px;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+
+  .rightStack {
+    display: grid;
+    gap: 12px;
+  }
+
+  .listPanel {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    width: min(380px, calc(100vw - 28px));
+    padding: 12px 14px;
+    max-height: 33vh;
+    overflow: auto;
+  }
+
+  .listPanel::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .listPanel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+  }
+
+  .ownedList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .ownedTag {
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .centerOverlay {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 24px;
+    padding: 22px;
   }
 
-  .menu {
+  .menuCard {
     pointer-events: auto;
-    width: min(560px, 100%);
+    width: min(1080px, 100%);
     padding: 26px;
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
   }
 
-  .title {
-    margin: 0 0 8px;
-    font-size: clamp(36px, 7vw, 68px);
-    line-height: 0.95;
-    font-weight: 900;
-    letter-spacing: -0.04em;
+  .menuTitle {
+    margin: 0;
+    font-size: clamp(40px, 7vw, 72px);
+    line-height: 0.92;
+    letter-spacing: -0.05em;
   }
 
-  .title span {
+  .menuTitle span {
     background: linear-gradient(90deg, var(--text), var(--accent), var(--accent2));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  .subtitle {
-    margin: 0 auto 18px;
-    max-width: 40ch;
+  .menuText {
     color: var(--muted);
-    font-size: 16px;
-    line-height: 1.5;
-  }
-
-  .controls {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    text-align: left;
-    margin: 18px 0 22px;
-  }
-
-  .controlItem {
-    padding: 12px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .controlItem strong {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: var(--text);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .controlItem span {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.55;
+    max-width: 56ch;
   }
 
   .actions {
     display: flex;
-    justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 18px;
   }
 
   button {
+    pointer-events: auto;
     border: 0;
     border-radius: 14px;
-    padding: 14px 18px;
+    padding: 13px 17px;
     font: inherit;
     font-weight: 800;
     cursor: pointer;
@@ -217,109 +255,183 @@
   }
 
   .primary {
-    color: #071321;
-    background: linear-gradient(90deg, var(--accent), #b7f4ff);
+    background: linear-gradient(90deg, var(--accent), #d8fbff);
+    color: #051019;
   }
 
   .secondary {
-    color: var(--text);
     background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
   }
 
-  .footerHint {
+  .danger {
+    background: rgba(255, 101, 125, 0.18);
+    color: #ffd7df;
+  }
+
+  .shopGrid {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .shopItem {
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .shopItem button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .shopCost {
+    color: var(--gold);
+    font-weight: 800;
+  }
+
+  .talentOverlay {
     position: absolute;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    text-align: center;
+    inset: 0;
+    display: none;
+    place-items: center;
+    padding: 22px;
+    background: rgba(2, 5, 14, 0.58);
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+  }
+
+  .talentWrap {
+    width: min(1240px, 100%);
+    padding: 24px;
+  }
+
+  .talentHeader {
+    margin-bottom: 16px;
+  }
+
+  .talentGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .talentCard {
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+  }
+
+  .talentCard:hover {
+    transform: translateY(-2px);
+    border-color: rgba(121, 231, 255, 0.42);
+  }
+
+  .talentCard.common {
+    box-shadow: inset 0 0 0 1px rgba(121, 231, 255, 0.08);
+  }
+
+  .talentCard.uncommon {
+    box-shadow: inset 0 0 0 1px rgba(121, 255, 194, 0.1);
+  }
+
+  .talentCard.rare,
+  .talentCard.keystone,
+  .talentCard.evolved {
+    box-shadow: inset 0 0 0 1px rgba(255, 215, 106, 0.12);
+  }
+
+  .talentCard.keystone {
+    box-shadow: inset 0 0 0 1px rgba(242, 125, 255, 0.16);
+  }
+
+  .talentCard.evolved {
+    box-shadow: inset 0 0 0 1px rgba(158, 123, 255, 0.24);
+  }
+
+  .rarity {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .rarity.common { color: var(--accent); }
+  .rarity.uncommon { color: var(--green); }
+  .rarity.rare { color: var(--rare); }
+  .rarity.keystone { color: var(--epic); }
+  .rarity.evolved { color: var(--accent2); }
+
+  .talentName {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .talentDesc {
     color: var(--muted);
-    font-size: 13px;
-    opacity: 0.9;
+    line-height: 1.5;
+    min-height: 72px;
+  }
+
+  .talentMeta {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .talentMeta span {
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    color: var(--text);
   }
 
   .hidden {
-    display: none;
+    display: none !important;
   }
 
-  .mobileButtons {
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    bottom: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    pointer-events: none;
-  }
-
-  .touchPad,
-  .dashButton {
-    pointer-events: auto;
-    border-radius: 22px;
-    border: 1px solid var(--line);
-    background: rgba(12, 18, 38, 0.55);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
-  }
-
-  .touchPad {
-    width: min(34vw, 160px);
-    height: min(34vw, 160px);
-    position: relative;
-  }
-
-  .stick {
-    position: absolute;
-    width: 54px;
-    height: 54px;
-    border-radius: 999px;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3), rgba(118,228,255,0.15));
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .dashButton {
-    width: 88px;
-    height: 88px;
-    display: grid;
-    place-items: center;
-    font-weight: 900;
-    color: var(--text);
-    letter-spacing: 0.08em;
-  }
-
-  .dashButton small {
-    display: block;
+  .footerTips {
+    margin-top: 16px;
     color: var(--muted);
-    font-size: 11px;
-    margin-top: 2px;
-    letter-spacing: 0.12em;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
-  @media (max-width: 700px) {
-    .controls {
+  @media (max-width: 1060px) {
+    .topbar {
       grid-template-columns: 1fr;
     }
 
-    .topbar {
-      top: 12px;
-      left: 12px;
-      right: 12px;
+    .menuCard {
+      grid-template-columns: 1fr;
     }
 
-    .hudBox,
-    .dashWrap {
-      min-width: 0;
+    .talentGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .hudValue {
-      font-size: 20px;
+    .listPanel {
+      width: calc(100vw - 28px);
+      max-height: 22vh;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .talentGrid {
+      grid-template-columns: 1fr;
     }
 
-    .footerHint {
-      bottom: 118px;
+    .subGrid {
+      grid-template-columns: 1fr 1fr;
     }
   }
 </style>
@@ -330,192 +442,424 @@
 
   <div class="overlay">
     <div class="topbar">
-      <div class="hudGroup">
-        <div class="card hudBox">
-          <div class="hudLabel">Score</div>
-          <div class="hudValue" id="scoreText">0</div>
+      <div class="panel statsPanel">
+        <div class="row">
+          <div>
+            <div class="tiny">Hull</div>
+            <div class="big" id="hpText">100 / 100</div>
+          </div>
+          <div class="tiny" id="armorText">0 Armor</div>
         </div>
-        <div class="card hudBox">
-          <div class="hudLabel">Best</div>
-          <div class="hudValue" id="bestText">0</div>
+        <div class="meter"><div class="fill" id="hpFill"></div></div>
+        <div class="meter"><div class="fill" id="shieldFill"></div></div>
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <div class="tiny">Level</div>
+            <div class="big" id="levelText">1</div>
+          </div>
+          <div>
+            <div class="tiny">XP</div>
+            <div class="big" id="xpText">0 / 18</div>
+          </div>
         </div>
-        <div class="card hudBox">
-          <div class="hudLabel">Shards</div>
-          <div class="hudValue" id="shardsText">0</div>
+        <div class="meter"><div class="fill" id="xpFill"></div></div>
+      </div>
+
+      <div class="panel statsPanel">
+        <div class="row">
+          <div>
+            <div class="tiny">Run</div>
+            <div class="big" id="timeText">00:00</div>
+          </div>
+          <div>
+            <div class="tiny">Score</div>
+            <div class="big" id="scoreText">0</div>
+          </div>
+        </div>
+        <div class="subGrid">
+          <div class="pill">
+            <div class="tiny">Dash</div>
+            <div class="value" id="dashText">Ready</div>
+          </div>
+          <div class="pill">
+            <div class="tiny">Kills</div>
+            <div class="value" id="killText">0</div>
+          </div>
+          <div class="pill">
+            <div class="tiny">Echoes</div>
+            <div class="value" id="echoText">0</div>
+          </div>
         </div>
       </div>
 
-      <div class="card dashWrap">
-        <div class="hudLabel">Dash</div>
-        <div class="hudValue" id="dashText">Ready</div>
-        <div class="dashBar">
-          <div class="dashFill" id="dashFill"></div>
+      <div class="rightStack">
+        <div class="panel statsPanel hidden" id="bossPanel">
+          <div class="row">
+            <div>
+              <div class="tiny">Boss</div>
+              <div class="big" id="bossNameText">The Sky Tyrant</div>
+            </div>
+            <div class="tiny" id="bossHpText">0 / 0</div>
+          </div>
+          <div class="meter"><div class="fill" id="bossFill"></div></div>
+        </div>
+
+        <div class="panel statsPanel">
+          <div class="row">
+            <div class="tiny">Goal</div>
+            <div class="tiny" id="goalText">Survive to 2:00</div>
+          </div>
+          <div class="footerTips" id="runTip">
+            Move with WASD or Arrow Keys. Dash with Space or Shift. You auto-fire at the nearest target.
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="centerPanel" id="menuWrap">
-      <div class="card menu">
-        <h1 class="title">Sky <span>Dash</span></h1>
-        <p class="subtitle">
-          Fly through the storm, dodge crystal walls, grab shards, and chain dashes to survive as long as you can.
-        </p>
+    <div class="panel listPanel" id="ownedPanel">
+      <div class="row">
+        <div class="tiny">Build</div>
+        <div class="tiny" id="talentCountText">0 Talents</div>
+      </div>
+      <div class="ownedList" id="ownedList"></div>
+    </div>
 
-        <div class="controls">
-          <div class="controlItem">
-            <strong>Move</strong>
-            <span>WASD or Arrow Keys. On mobile, use the left pad.</span>
+    <div class="centerOverlay" id="menuOverlay">
+      <div class="panel menuCard">
+        <div>
+          <div class="tiny">Single-file website game</div>
+          <h1 class="menuTitle">Sky Dash <span>V2</span></h1>
+          <p class="menuText">
+            This version turns the old dodge game into a full survivor run. You level up, draft talents, evolve them into stronger forms, fight a boss at the end, and earn Echoes for deep runs. Echoes buy permanent upgrades for future attempts.
+          </p>
+          <p class="menuText">
+            The talent pool has <strong>80 cards</strong>. Some synergize, some lock out others, and several evolve when you hit the right build path.
+          </p>
+          <div class="actions">
+            <button class="primary" id="startButton">Start Run</button>
+            <button class="secondary" id="resetShopButton">Reset Prestige Shop</button>
           </div>
-          <div class="controlItem">
-            <strong>Dash</strong>
-            <span>Space, Shift, or tap the Dash button. Dashing breaks through danger for a moment.</span>
-          </div>
-          <div class="controlItem">
-            <strong>Goal</strong>
-            <span>Stay alive, collect shards, and push your score higher each run.</span>
-          </div>
-          <div class="controlItem">
-            <strong>Restart</strong>
-            <span>Press Enter after a crash or use the button below.</span>
+          <div class="footerTips" id="summaryText">
+            Survive until the final boss arrives at 2:00. Beat it to clear the run. You only gain Echoes from important milestones like major level marks and boss clears.
           </div>
         </div>
 
-        <div class="actions">
-          <button class="primary" id="startButton">Start Game</button>
-          <button class="secondary" id="restartButton">Restart</button>
+        <div>
+          <div class="row">
+            <div>
+              <div class="tiny">Prestige Currency</div>
+              <div class="big" id="menuEchoText">0 Echoes</div>
+            </div>
+            <div class="tiny">Permanent Upgrades</div>
+          </div>
+          <div class="shopGrid" id="shopGrid"></div>
         </div>
       </div>
     </div>
 
-    <div class="footerHint" id="footerHint">
-      Tip: Dash through tight gaps when the screen gets crowded.
-    </div>
-
-    <div class="mobileButtons">
-      <div class="touchPad hidden" id="touchPad">
-        <div class="stick" id="stick"></div>
+    <div class="talentOverlay" id="talentOverlay">
+      <div class="panel talentWrap">
+        <div class="talentHeader row">
+          <div>
+            <div class="tiny">Level Up</div>
+            <div class="big">Choose a Talent</div>
+          </div>
+          <div class="tiny" id="talentLevelText">Level 2</div>
+        </div>
+        <div class="talentGrid" id="talentGrid"></div>
+        <div class="footerTips">
+          Evolutions appear when you meet their build requirements. Keystone talents are powerful, but some block off entire paths.
+        </div>
       </div>
-      <button class="dashButton hidden" id="dashButton">
-        DASH
-        <small id="dashButtonSmall">READY</small>
-      </button>
     </div>
   </div>
 </div>
 
 <script>
-const Canvas = document.getElementById("game")
-const Ctx = Canvas.getContext("2d")
+const Canvas = document.getElementById('game')
+const Ctx = Canvas.getContext('2d')
 
-const ScoreText = document.getElementById("scoreText")
-const BestText = document.getElementById("bestText")
-const ShardsText = document.getElementById("shardsText")
-const DashText = document.getElementById("dashText")
-const DashFill = document.getElementById("dashFill")
+const HpText = document.getElementById('hpText')
+const ArmorText = document.getElementById('armorText')
+const HpFill = document.getElementById('hpFill')
+const ShieldFill = document.getElementById('shieldFill')
+const LevelText = document.getElementById('levelText')
+const XpText = document.getElementById('xpText')
+const XpFill = document.getElementById('xpFill')
+const TimeText = document.getElementById('timeText')
+const ScoreText = document.getElementById('scoreText')
+const DashText = document.getElementById('dashText')
+const KillText = document.getElementById('killText')
+const EchoText = document.getElementById('echoText')
+const GoalText = document.getElementById('goalText')
+const RunTip = document.getElementById('runTip')
+const BossPanel = document.getElementById('bossPanel')
+const BossNameText = document.getElementById('bossNameText')
+const BossHpText = document.getElementById('bossHpText')
+const BossFill = document.getElementById('bossFill')
+const OwnedList = document.getElementById('ownedList')
+const TalentCountText = document.getElementById('talentCountText')
 
-const MenuWrap = document.getElementById("menuWrap")
-const StartButton = document.getElementById("startButton")
-const RestartButton = document.getElementById("restartButton")
-const FooterHint = document.getElementById("footerHint")
+const MenuOverlay = document.getElementById('menuOverlay')
+const StartButton = document.getElementById('startButton')
+const ResetShopButton = document.getElementById('resetShopButton')
+const SummaryText = document.getElementById('summaryText')
+const MenuEchoText = document.getElementById('menuEchoText')
+const ShopGrid = document.getElementById('shopGrid')
 
-const TouchPad = document.getElementById("touchPad")
-const Stick = document.getElementById("stick")
-const DashButton = document.getElementById("dashButton")
-const DashButtonSmall = document.getElementById("dashButtonSmall")
+const TalentOverlay = document.getElementById('talentOverlay')
+const TalentGrid = document.getElementById('talentGrid')
+const TalentLevelText = document.getElementById('talentLevelText')
 
 const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1))
+const SAVE_KEY = 'skyDashV2Meta'
 
 let Width = 0
 let Height = 0
 let LastTime = 0
-
-const State = {
-  mode: "menu",
-  score: 0,
-  best: Number(localStorage.getItem("skyDashBest") || 0),
-  shards: 0,
-  time: 0,
-  difficulty: 1,
-  screenShake: 0,
-  flash: 0
-}
 
 const Input = {
   left: false,
   right: false,
   up: false,
   down: false,
-  pointerActive: false,
-  pointerX: 0,
-  pointerY: 0
+  dash: false,
 }
 
-const Touch = {
-  joystickActive: false,
-  pointerId: null,
-  centerX: 0,
-  centerY: 0,
-  x: 0,
-  y: 0
+const Colors = {
+  player: '#ecf8ff',
+  accent: '#79e7ff',
+  accent2: '#9e7bff',
+  enemy: '#ff647d',
+  enemy2: '#ffb36f',
+  xp: '#7cffc7',
+  elite: '#ffd76a',
+}
+
+const Meta = LoadMeta()
+
+const ShopDefs = [
+  { id: 'vitality', name: 'Vital Start', desc: '+12 max HP each rank.', baseCost: 8, step: 6, max: 8 },
+  { id: 'arsenal', name: 'Arsenal', desc: '+8% damage each rank.', baseCost: 10, step: 8, max: 8 },
+  { id: 'magnetism', name: 'Magnetism', desc: '+16 pickup range each rank.', baseCost: 7, step: 5, max: 8 },
+  { id: 'scholarship', name: 'Scholarship', desc: '+6% XP gain each rank.', baseCost: 9, step: 7, max: 8 },
+  { id: 'momentum', name: 'Momentum', desc: '-6% dash cooldown each rank.', baseCost: 9, step: 8, max: 6 },
+  { id: 'aegis', name: 'Aegis', desc: '+1 armor each rank.', baseCost: 8, step: 8, max: 6 },
+  { id: 'fortune', name: 'Fortune', desc: '+8% luck each rank.', baseCost: 10, step: 9, max: 6 },
+  { id: 'reserve', name: 'Reserve', desc: '+10 starting shield each rank.', baseCost: 11, step: 9, max: 6 },
+]
+
+const TalentDefs = [
+  { id: 'keenEdge', name: 'Keen Edge', desc: 'Bullets hit harder.', rarity: 'common', max: 3, effects: { damagePct: 0.12 } },
+  { id: 'rapidCycle', name: 'Rapid Cycle', desc: 'Fire faster.', rarity: 'common', max: 3, effects: { fireRatePct: 0.15 } },
+  { id: 'hollowPoint', name: 'Hollow Point', desc: 'Raise crit chance.', rarity: 'common', max: 3, effects: { crit: 0.05 } },
+  { id: 'longBarrel', name: 'Long Barrel', desc: 'Projectiles fly faster and farther.', rarity: 'common', max: 2, effects: { bulletSpeedPct: 0.16, rangePct: 0.12 } },
+  { id: 'scatterLens', name: 'Scatter Lens', desc: 'Wider shots cover space better.', rarity: 'common', max: 2, effects: { spread: 0.16 } },
+  { id: 'heavySlug', name: 'Heavy Slug', desc: 'Bigger bullets with a little knock.', rarity: 'common', max: 2, effects: { bulletSizePct: 0.18, knockback: 0.15 } },
+  { id: 'twinFang', name: 'Twin Fang', desc: 'Fire one extra projectile.', rarity: 'uncommon', max: 2, effects: { projectiles: 1, damagePct: -0.05 } },
+  { id: 'serratedTips', name: 'Serrated Tips', desc: 'Hits inflict bleed.', rarity: 'uncommon', max: 2, effects: { bleedChance: 0.24, bleedPower: 0.18 } },
+  { id: 'overclockBolt', name: 'Overclock Bolt', desc: 'Shots carry more velocity and punch.', rarity: 'uncommon', max: 2, effects: { bulletSpeedPct: 0.22, damagePct: 0.06 } },
+  { id: 'seekerThread', name: 'Seeker Thread', desc: 'Bullets curve toward targets.', rarity: 'uncommon', max: 2, effects: { homing: 0.25 } },
+  { id: 'sparkRounds', name: 'Spark Rounds', desc: 'Hits can shock enemies.', rarity: 'common', max: 3, effects: { shockChance: 0.18, chainChance: 0.08 } },
+  { id: 'staticNet', name: 'Static Net', desc: 'Shock jumps farther and slows.', rarity: 'uncommon', max: 2, effects: { chainChance: 0.12, shockSlow: 0.1 } },
+  { id: 'emberCore', name: 'Ember Core', desc: 'Hits can burn.', rarity: 'common', max: 3, effects: { burnChance: 0.18, burnPower: 0.18 } },
+  { id: 'cinderWake', name: 'Cinder Wake', desc: 'Burning enemies explode on death.', rarity: 'uncommon', max: 2, effects: { burnBurst: 0.24 } },
+  { id: 'frostTip', name: 'Frost Tip', desc: 'Hits can chill.', rarity: 'common', max: 3, effects: { chillChance: 0.18, chillPower: 0.1 } },
+  { id: 'coldFront', name: 'Cold Front', desc: 'Chill deepens into freeze windows.', rarity: 'uncommon', max: 2, effects: { freezeChance: 0.09, chillPower: 0.12 } },
+  { id: 'venomTouch', name: 'Venom Touch', desc: 'Hits can poison.', rarity: 'common', max: 3, effects: { poisonChance: 0.18, poisonPower: 0.16 } },
+  { id: 'plagueEngine', name: 'Plague Engine', desc: 'Poison spreads when foes die.', rarity: 'uncommon', max: 2, effects: { plagueSpread: 0.28 } },
+  { id: 'sunderingLight', name: 'Sundering Light', desc: 'Deal more to elites and bosses.', rarity: 'rare', max: 2, effects: { bossDamagePct: 0.22 } },
+  { id: 'duskBloom', name: 'Dusk Bloom', desc: 'Kills can bloom into void blasts.', rarity: 'rare', max: 2, effects: { deathNova: 0.18 } },
+  { id: 'ironSkin', name: 'Iron Skin', desc: 'Gain armor.', rarity: 'common', max: 3, effects: { armor: 1 } },
+  { id: 'secondWind', name: 'Second Wind', desc: 'Recover health over time.', rarity: 'common', max: 3, effects: { regen: 0.22 } },
+  { id: 'guardianPlates', name: 'Guardian Plates', desc: 'Gain max health.', rarity: 'common', max: 3, effects: { maxHp: 14 } },
+  { id: 'bastionCircuit', name: 'Bastion Circuit', desc: 'Gain a shield layer.', rarity: 'uncommon', max: 2, effects: { shieldMax: 18, shieldRegen: 0.18 } },
+  { id: 'mirrorCoat', name: 'Mirror Coat', desc: 'Chance to reflect enemy bullets.', rarity: 'uncommon', max: 2, effects: { reflectChance: 0.14 } },
+  { id: 'bloodDrinker', name: 'Blood Drinker', desc: 'Heal slightly on hit.', rarity: 'rare', max: 2, effects: { lifesteal: 0.018 } },
+  { id: 'stoneHeart', name: 'Stone Heart', desc: 'Big health, slower feet.', rarity: 'uncommon', max: 2, effects: { maxHp: 24, speedPct: -0.06 } },
+  { id: 'defiantPulse', name: 'Defiant Pulse', desc: 'Low health releases a pulse.', rarity: 'rare', max: 1, effects: { panicPulse: 1 } },
+  { id: 'shelteringWave', name: 'Sheltering Wave', desc: 'Dashing grants barrier.', rarity: 'uncommon', max: 2, effects: { dashShield: 8 } },
+  { id: 'emergencyReserve', name: 'Emergency Reserve', desc: 'Once per run, refuse death.', rarity: 'rare', max: 1, effects: { revive: 1 } },
+  { id: 'kineticBoots', name: 'Kinetic Boots', desc: 'Move faster.', rarity: 'common', max: 3, effects: { speedPct: 0.1 } },
+  { id: 'slipstream', name: 'Slipstream', desc: 'Less drag while moving.', rarity: 'common', max: 2, effects: { accelPct: 0.16 } },
+  { id: 'phaseBattery', name: 'Phase Battery', desc: 'Dash comes back faster.', rarity: 'common', max: 3, effects: { dashCdPct: -0.12 } },
+  { id: 'dancerStep', name: 'Dancer Step', desc: 'Quick bursts raise dodge.', rarity: 'uncommon', max: 2, effects: { dodgeChance: 0.06 } },
+  { id: 'jetVeins', name: 'Jet Veins', desc: 'Gain more dash speed.', rarity: 'common', max: 2, effects: { dashPowerPct: 0.18 } },
+  { id: 'dashBurst', name: 'Dash Burst', desc: 'Dash fires a circular volley.', rarity: 'uncommon', max: 2, effects: { onDashShots: 6 } },
+  { id: 'ghostStride', name: 'Ghost Stride', desc: 'Dash invulnerability lasts longer.', rarity: 'uncommon', max: 2, effects: { dashInvuln: 0.08 } },
+  { id: 'horizonLunge', name: 'Horizon Lunge', desc: 'Dash distance and movement grow.', rarity: 'uncommon', max: 2, effects: { dashPowerPct: 0.12, speedPct: 0.06 } },
+  { id: 'trailblazer', name: 'Trailblazer', desc: 'Leave a damaging trail while dashing.', rarity: 'rare', max: 1, effects: { dashTrail: 1 } },
+  { id: 'gravityLatch', name: 'Gravity Latch', desc: 'Nearby gems pull toward you.', rarity: 'common', max: 3, effects: { pickup: 28 } },
+  { id: 'scholarMark', name: 'Scholar Mark', desc: 'Gain more experience.', rarity: 'common', max: 3, effects: { xpMult: 0.12 } },
+  { id: 'scavenger', name: 'Scavenger', desc: 'Enemies drop more shards.', rarity: 'common', max: 3, effects: { gemBonus: 0.12 } },
+  { id: 'luckyBreak', name: 'Lucky Break', desc: 'Rare talents appear more often.', rarity: 'uncommon', max: 2, effects: { luck: 0.18 } },
+  { id: 'magnetSkin', name: 'Magnet Skin', desc: 'Pickup radius grows even more.', rarity: 'common', max: 2, effects: { pickup: 34 } },
+  { id: 'swiftStudy', name: 'Swift Study', desc: 'Level thresholds shrink a bit.', rarity: 'uncommon', max: 2, effects: { xpNeedPct: -0.08 } },
+  { id: 'soulBank', name: 'Soul Bank', desc: 'Gain bonus score from elites and bosses.', rarity: 'rare', max: 2, effects: { scoreBonus: 0.2 } },
+  { id: 'omenGlass', name: 'Omen Glass', desc: 'See danger and hit harder after near misses.', rarity: 'rare', max: 1, effects: { omen: 1 } },
+  { id: 'hunterMap', name: 'Hunter Map', desc: 'Elites appear sooner but pay better.', rarity: 'rare', max: 1, effects: { eliteRate: 0.3, scoreBonus: 0.12 } },
+  { id: 'temporalPocket', name: 'Temporal Pocket', desc: 'Shortly slow time after level-up.', rarity: 'uncommon', max: 1, effects: { timeSlowLevel: 1 } },
+  { id: 'echoPrimer', name: 'Echo Primer', desc: 'Important milestones grant more Echoes.', rarity: 'rare', max: 1, effects: { echoBonus: 0.25 } },
+  { id: 'orbitSeed', name: 'Orbit Seed', desc: 'Gain an orbiting blade.', rarity: 'uncommon', max: 3, effects: { orbitals: 1 } },
+  { id: 'orbitForge', name: 'Orbit Forge', desc: 'Orbitals hit harder and wider.', rarity: 'uncommon', max: 2, effects: { orbitalDamagePct: 0.2, orbitalSizePct: 0.16 } },
+  { id: 'droneBuddy', name: 'Drone Buddy', desc: 'Summon a helper drone.', rarity: 'uncommon', max: 2, effects: { drones: 1 } },
+  { id: 'sniperDrone', name: 'Sniper Drone', desc: 'Drones fire slower but much harder.', rarity: 'rare', max: 2, effects: { droneDamagePct: 0.28, droneFireRatePct: -0.08 } },
+  { id: 'mineLayer', name: 'Mine Layer', desc: 'Dashing or moving may drop mines.', rarity: 'uncommon', max: 2, effects: { mineChance: 0.18 } },
+  { id: 'chainRelay', name: 'Chain Relay', desc: 'Chain lightning jumps more.', rarity: 'rare', max: 2, effects: { chainCount: 1, chainDamagePct: 0.18 } },
+  { id: 'gravityWell', name: 'Gravity Well', desc: 'Pulse a pull around you.', rarity: 'rare', max: 2, effects: { well: 1 } },
+  { id: 'stormCaller', name: 'Storm Caller', desc: 'Call lightning from the storm.', rarity: 'rare', max: 2, effects: { storm: 1 } },
+  { id: 'bloodTotem', name: 'Blood Totem', desc: 'Drain nearby foes every few seconds.', rarity: 'rare', max: 2, effects: { bloodAura: 1 } },
+  { id: 'sanctuaryTotem', name: 'Sanctuary Totem', desc: 'Heal when your aura pulses.', rarity: 'rare', max: 2, effects: { sanctuaryAura: 1 } },
+  { id: 'glassCannon', name: 'Glass Cannon', desc: 'Huge damage, lower max health.', rarity: 'keystone', max: 1, effects: { damagePct: 0.38, maxHp: -26 }, conflicts: ['ironCitadel', 'bulwarkDoctrine'] },
+  { id: 'ironCitadel', name: 'Iron Citadel', desc: 'Huge defense, lower damage.', rarity: 'keystone', max: 1, effects: { armor: 4, maxHp: 22, damagePct: -0.16 }, conflicts: ['glassCannon', 'stormDoctrine'] },
+  { id: 'gamblerSoul', name: 'Gambler Soul', desc: 'High crit highs, low crit lows.', rarity: 'keystone', max: 1, effects: { crit: 0.2, damageVariance: 0.35 } },
+  { id: 'bloodPrice', name: 'Blood Price', desc: 'Sacrifice health for power spikes.', rarity: 'keystone', max: 1, effects: { bloodPrice: 1, damagePct: 0.22 }, conflicts: ['bulwarkDoctrine'] },
+  { id: 'patientHunter', name: 'Patient Hunter', desc: 'Standing still builds power.', rarity: 'keystone', max: 1, effects: { patient: 1 }, conflicts: ['feverRush'] },
+  { id: 'feverRush', name: 'Fever Rush', desc: 'Constant motion fuels attack speed.', rarity: 'keystone', max: 1, effects: { rush: 1 }, conflicts: ['patientHunter'] },
+  { id: 'bulwarkDoctrine', name: 'Bulwark Doctrine', desc: 'Barrier-first defense style.', rarity: 'keystone', max: 1, effects: { shieldMax: 36, shieldRegen: 0.28 }, conflicts: ['bloodPrice', 'glassCannon'] },
+  { id: 'stormDoctrine', name: 'Storm Doctrine', desc: 'Elemental style grows stronger.', rarity: 'keystone', max: 1, effects: { stormDoctrine: 1, burnChance: 0.08, shockChance: 0.08, chillChance: 0.08 }, conflicts: ['ironCitadel'] },
+  { id: 'predatorInstinct', name: 'Predator Instinct', desc: 'Move faster toward wounded foes.', rarity: 'keystone', max: 1, effects: { predator: 1 } },
+  { id: 'cosmology', name: 'Cosmology', desc: 'Space effects become far stronger.', rarity: 'keystone', max: 1, effects: { cosmology: 1, well: 1, orbitals: 1 } },
+  { id: 'monomolecularEdge', name: 'Monomolecular Edge', desc: 'Keen Edge evolves into perfect cuts.', rarity: 'evolved', max: 1, effects: { damagePct: 0.3, pierce: 1 }, requires: [{ id: 'keenEdge', count: 3 }] },
+  { id: 'bulletTempest', name: 'Bullet Tempest', desc: 'Rapid Cycle and Twin Fang erupt into a storm.', rarity: 'evolved', max: 1, effects: { fireRatePct: 0.22, projectiles: 2, spread: 0.08 }, requires: [{ id: 'rapidCycle', count: 3 }, { id: 'twinFang', count: 1 }] },
+  { id: 'thunderCrown', name: 'Thunder Crown', desc: 'Spark chains wrap the field in living voltage.', rarity: 'evolved', max: 1, effects: { shockChance: 0.18, chainCount: 2, chainDamagePct: 0.32, storm: 1 }, requires: [{ id: 'sparkRounds', count: 1 }, { id: 'staticNet', count: 1 }, { id: 'chainRelay', count: 1 }] },
+  { id: 'whiteFurnace', name: 'White Furnace', desc: 'Ember talents fuse into searing white fire.', rarity: 'evolved', max: 1, effects: { burnChance: 0.22, burnPower: 0.3, burnBurst: 0.35 }, requires: [{ id: 'emberCore', count: 2 }, { id: 'cinderWake', count: 1 }] },
+  { id: 'absoluteZero', name: 'Absolute Zero', desc: 'Frost becomes hard freeze.', rarity: 'evolved', max: 1, effects: { chillChance: 0.16, freezeChance: 0.16, bossDamagePct: 0.14 }, requires: [{ id: 'frostTip', count: 2 }, { id: 'coldFront', count: 1 }] },
+  { id: 'immortalEngine', name: 'Immortal Engine', desc: 'Recovery systems overtake death itself.', rarity: 'evolved', max: 1, effects: { regen: 0.42, shieldMax: 22, revive: 1 }, requires: [{ id: 'secondWind', count: 2 }, { id: 'emergencyReserve', count: 1 }] },
+  { id: 'phaseEngine', name: 'Phase Engine', desc: 'Dash tech ascends beyond solid space.', rarity: 'evolved', max: 1, effects: { dashCdPct: -0.28, dashInvuln: 0.14, onDashShots: 10, dashTrail: 1 }, requires: [{ id: 'phaseBattery', count: 2 }, { id: 'ghostStride', count: 1 }] },
+  { id: 'singularityHeart', name: 'Singularity Heart', desc: 'Gravity collapses inward around you.', rarity: 'evolved', max: 1, effects: { well: 2, damagePct: 0.16, cosmology: 1 }, requires: [{ id: 'gravityWell', count: 1 }, { id: 'cosmology', count: 1 }] },
+  { id: 'sovereignDrone', name: 'Sovereign Drone', desc: 'Your helpers become a coordinated wing.', rarity: 'evolved', max: 1, effects: { drones: 1, droneDamagePct: 0.38, droneFireRatePct: 0.18 }, requires: [{ id: 'droneBuddy', count: 1 }, { id: 'sniperDrone', count: 1 }, { id: 'orbitForge', count: 1 }] },
+  { id: 'crimsonCathedral', name: 'Crimson Cathedral', desc: 'Blood arts bloom into a lethal sanctuary.', rarity: 'evolved', max: 1, effects: { bloodAura: 1, lifesteal: 0.03, damagePct: 0.16, sanctuaryAura: 1 }, requires: [{ id: 'bloodDrinker', count: 1 }, { id: 'bloodTotem', count: 1 }, { id: 'bloodPrice', count: 1 }] },
+]
+
+const TalentById = Object.fromEntries(TalentDefs.map(t => [t.id, t]))
+
+const Game = {
+  mode: 'menu',
+  time: 0,
+  score: 0,
+  kills: 0,
+  level: 1,
+  xp: 0,
+  nextXp: 18,
+  echoesEarned: 0,
+  spawnTimer: 0,
+  eliteTimer: 20,
+  levelOffers: [],
+  bossSpawned: false,
+  bossKilled: false,
+  win: false,
+  slowTimer: 0,
+  talentCounts: {},
+  talentHistory: [],
+  talentSnapshot: [],
+  particles: [],
+  floaters: [],
+  stars: [],
+  bullets: [],
+  enemyBullets: [],
+  enemies: [],
+  gems: [],
+  hazards: [],
+  drones: [],
+  orbitals: [],
 }
 
 const Player = {
   x: 0,
   y: 0,
-  radius: 16,
+  r: 14,
   vx: 0,
   vy: 0,
-  speed: 480,
-  friction: 0.9,
-  dashCooldown: 0,
-  dashCooldownMax: 1.8,
+  hp: 100,
+  maxHp: 100,
+  shield: 0,
+  maxShield: 0,
+  fireCd: 0,
+  dashCd: 0,
   dashTime: 0,
-  dashDuration: 0.18,
+  dashDirX: 0,
+  dashDirY: 0,
+  hitCd: 0,
   invuln: 0,
-  trail: []
+  reviveLeft: 0,
+  stats: {},
+  trail: [],
+  omenTimer: 0,
+  stationaryTime: 0,
+  movingTime: 0,
+  panicPulseCd: 0,
 }
 
-const Stars = []
-const Obstacles = []
-const Shards = []
-const Particles = []
+function LoadMeta() {
+  const raw = localStorage.getItem(SAVE_KEY)
 
-function Resize() {
-  Width = window.innerWidth
-  Height = window.innerHeight
-
-  Canvas.width = Math.floor(Width * DPR)
-  Canvas.height = Math.floor(Height * DPR)
-  Canvas.style.width = Width + "px"
-  Canvas.style.height = Height + "px"
-
-  Ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
-
-  if (State.time === 0) {
-    Player.x = Width * 0.5
-    Player.y = Height * 0.78
+  if (!raw) {
+    return {
+      echoes: 0,
+      bestScore: 0,
+      shop: {
+        vitality: 0,
+        arsenal: 0,
+        magnetism: 0,
+        scholarship: 0,
+        momentum: 0,
+        aegis: 0,
+        fortune: 0,
+        reserve: 0,
+      },
+    }
   }
 
-  Touch.centerX = Math.min(96, Width * 0.17)
-  Touch.centerY = Height - Math.min(96, Width * 0.17)
+  try {
+    const data = JSON.parse(raw)
+
+    return {
+      echoes: Number(data.echoes || 0),
+      bestScore: Number(data.bestScore || 0),
+      shop: {
+        vitality: Number(data.shop?.vitality || 0),
+        arsenal: Number(data.shop?.arsenal || 0),
+        magnetism: Number(data.shop?.magnetism || 0),
+        scholarship: Number(data.shop?.scholarship || 0),
+        momentum: Number(data.shop?.momentum || 0),
+        aegis: Number(data.shop?.aegis || 0),
+        fortune: Number(data.shop?.fortune || 0),
+        reserve: Number(data.shop?.reserve || 0),
+      },
+    }
+  } catch (error) {
+    return {
+      echoes: 0,
+      bestScore: 0,
+      shop: {
+        vitality: 0,
+        arsenal: 0,
+        magnetism: 0,
+        scholarship: 0,
+        momentum: 0,
+        aegis: 0,
+        fortune: 0,
+        reserve: 0,
+      },
+    }
+  }
 }
 
-window.addEventListener("resize", Resize)
-
-function Lerp(a, b, t) {
-  return a + (b - a) * t
+function SaveMeta() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(Meta))
 }
 
 function Clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
 }
 
-function Random(min, max) {
-  return Math.random() * (max - min) + min
+function Lerp(a, b, t) {
+  return a + (b - a) * t
 }
 
-function RandomInt(min, max) {
-  return Math.floor(Random(min, max + 1))
+function Rand(min, max) {
+  return Math.random() * (max - min) + min
 }
 
 function Dist(ax, ay, bx, by) {
@@ -524,232 +868,1130 @@ function Dist(ax, ay, bx, by) {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-function ResetGame() {
-  State.mode = "playing"
-  State.score = 0
-  State.shards = 0
-  State.time = 0
-  State.difficulty = 1
-  State.screenShake = 0
-  State.flash = 0
+function FormatTime(seconds) {
+  const total = Math.max(0, Math.floor(seconds))
+  const minutes = String(Math.floor(total / 60)).padStart(2, '0')
+  const remain = String(total % 60).padStart(2, '0')
+  return minutes + ':' + remain
+}
 
-  Obstacles.length = 0
-  Shards.length = 0
-  Particles.length = 0
+function Resize() {
+  Width = window.innerWidth
+  Height = window.innerHeight
+  Canvas.width = Math.floor(Width * DPR)
+  Canvas.height = Math.floor(Height * DPR)
+  Canvas.style.width = Width + 'px'
+  Canvas.style.height = Height + 'px'
+  Ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
+}
+
+function ResetArrays() {
+  Game.particles.length = 0
+  Game.floaters.length = 0
+  Game.bullets.length = 0
+  Game.enemyBullets.length = 0
+  Game.enemies.length = 0
+  Game.gems.length = 0
+  Game.hazards.length = 0
+  Game.drones.length = 0
+  Game.orbitals.length = 0
+}
+
+function BuildStarfield() {
+  Game.stars.length = 0
+  const count = Math.floor((Width * Height) / 9000)
+
+  for (let i = 0; i < count; i++) {
+    Game.stars.push({
+      x: Math.random() * Width,
+      y: Math.random() * Height,
+      size: Rand(0.8, 2.4),
+      speed: Rand(8, 42),
+      alpha: Rand(0.15, 0.8),
+    })
+  }
+}
+
+function ResetRun() {
+  Game.mode = 'playing'
+  Game.time = 0
+  Game.score = 0
+  Game.kills = 0
+  Game.level = 1
+  Game.xp = 0
+  Game.nextXp = 18
+  Game.echoesEarned = 0
+  Game.spawnTimer = 0
+  Game.eliteTimer = 20
+  Game.levelOffers = []
+  Game.bossSpawned = false
+  Game.bossKilled = false
+  Game.win = false
+  Game.slowTimer = 0
+  Game.talentCounts = {}
+  Game.talentHistory = []
+  Game.talentSnapshot = []
+  ResetArrays()
 
   Player.x = Width * 0.5
-  Player.y = Height * 0.78
+  Player.y = Height * 0.72
   Player.vx = 0
   Player.vy = 0
-  Player.dashCooldown = 0
+  Player.hp = 100
+  Player.maxHp = 100
+  Player.shield = 0
+  Player.maxShield = 0
+  Player.fireCd = 0
+  Player.dashCd = 0
   Player.dashTime = 0
+  Player.dashDirX = 0
+  Player.dashDirY = -1
+  Player.hitCd = 0
   Player.invuln = 0
+  Player.reviveLeft = 0
+  Player.stats = {}
   Player.trail.length = 0
+  Player.omenTimer = 0
+  Player.stationaryTime = 0
+  Player.movingTime = 0
+  Player.panicPulseCd = 0
 
-  MenuWrap.classList.add("hidden")
-  FooterHint.textContent = "Tip: Dash through tight gaps when the screen gets crowded."
+  RecalculateStats(true)
+  MenuOverlay.classList.add('hidden')
+  TalentOverlay.style.display = 'none'
+  BossPanel.classList.add('hidden')
+  GoalText.textContent = 'Survive to 2:00'
+  RunTip.textContent = 'Move with WASD or Arrow Keys. Dash with Space or Shift. You auto-fire at the nearest target.'
+  RenderOwnedTalents()
+  SummaryText.textContent = 'Survive until the final boss arrives at 2:00. Beat it to clear the run. You only gain Echoes from important milestones like major level marks and boss clears.'
 }
 
-function ShowMenu(gameOver = false) {
-  State.mode = "menu"
-
-  if (gameOver) {
-    FooterHint.textContent = "Press Enter or Restart to jump back in."
-  } else {
-    FooterHint.textContent = "Tip: Dash through tight gaps when the screen gets crowded."
-  }
-
-  MenuWrap.classList.remove("hidden")
-}
-
-function TriggerDash() {
-  if (State.mode !== "playing") {
+function EndRun(win) {
+  if (Game.mode === 'dead' || Game.mode === 'victory') {
     return
   }
 
-  if (Player.dashCooldown > 0 || Player.dashTime > 0) {
+  Game.mode = win ? 'victory' : 'dead'
+  Game.win = win
+  Game.bossKilled = Game.bossKilled || win
+  Meta.bestScore = Math.max(Meta.bestScore, Math.floor(Game.score))
+  Game.echoesEarned = CalculateEchoes(win)
+  Meta.echoes += Game.echoesEarned
+  SaveMeta()
+  RenderShop()
+  UpdateHud()
+
+  MenuOverlay.classList.remove('hidden')
+  SummaryText.textContent = win
+    ? `You cleared the run. Gained ${Game.echoesEarned} Echoes. Best score: ${Meta.bestScore}.`
+    : `Run over. Gained ${Game.echoesEarned} Echoes. Reach level 5 or beat the boss to start earning real prestige.`
+}
+
+function CalculateEchoes(win) {
+  let echoes = 0
+  const milestones = [5, 10, 15, 20, 25, 30]
+
+  for (const level of milestones) {
+    if (Game.level >= level) {
+      echoes += 3 + Math.floor(level / 10)
+    }
+  }
+
+  if (Game.bossKilled) {
+    echoes += 24
+  }
+
+  if (win) {
+    echoes += 12
+  }
+
+  echoes *= 1 + (Player.stats.echoBonus || 0)
+  return Math.floor(echoes)
+}
+
+function CountTalent(id) {
+  return Game.talentCounts[id] || 0
+}
+
+function HasTalent(id) {
+  return CountTalent(id) > 0
+}
+
+function AddTalent(id) {
+  Game.talentCounts[id] = CountTalent(id) + 1
+  Game.talentHistory.push(id)
+  const talent = TalentById[id]
+  SpawnFloater(Player.x, Player.y - 24, '+' + talent.name, talent.rarity === 'evolved' ? '#9e7bff' : talent.rarity === 'keystone' ? '#f27dff' : '#7cffc7')
+  RecalculateStats(false)
+  RenderOwnedTalents()
+}
+
+function RecalculateStats(initial) {
+  const prevMax = Player.maxHp || 100
+  const prevShieldMax = Player.maxShield || 0
+  const hpRatio = initial ? 1 : Clamp(Player.hp / prevMax, 0, 1)
+  const shieldRatio = initial ? 1 : (prevShieldMax > 0 ? Clamp(Player.shield / prevShieldMax, 0, 1) : 0)
+
+  const stats = {
+    maxHp: 100 + Meta.shop.vitality * 12,
+    fireRate: 3.1,
+    damage: 16 * (1 + Meta.shop.arsenal * 0.08),
+    bulletSpeed: 540,
+    range: 580,
+    bulletSize: 5,
+    projectiles: 1,
+    spread: 0.08,
+    pierce: 0,
+    speed: 248,
+    accel: 9.4,
+    friction: 0.86,
+    dashCd: 3.1 * (1 - Meta.shop.momentum * 0.06),
+    dashPower: 720,
+    dashInvuln: 0.16,
+    armor: Meta.shop.aegis,
+    regen: 0,
+    shieldMax: Meta.shop.reserve * 10,
+    shieldRegen: 0,
+    crit: 0.05,
+    critMult: 1.75,
+    pickup: 62 + Meta.shop.magnetism * 16,
+    xpMult: 1 + Meta.shop.scholarship * 0.06,
+    xpNeedPct: 0,
+    gemBonus: 1,
+    luck: Meta.shop.fortune * 0.08,
+    knockback: 0,
+    homing: 0,
+    bleedChance: 0,
+    bleedPower: 0,
+    burnChance: 0,
+    burnPower: 0,
+    burnBurst: 0,
+    chillChance: 0,
+    chillPower: 0,
+    freezeChance: 0,
+    poisonChance: 0,
+    poisonPower: 0,
+    plagueSpread: 0,
+    shockChance: 0,
+    shockSlow: 0,
+    chainChance: 0,
+    chainCount: 0,
+    chainDamagePct: 0,
+    bossDamagePct: 0,
+    deathNova: 0,
+    lifesteal: 0,
+    panicPulse: 0,
+    dashShield: 0,
+    revive: 0,
+    dodgeChance: 0,
+    dashTrail: 0,
+    scoreBonus: 0,
+    omen: 0,
+    eliteRate: 0,
+    timeSlowLevel: 0,
+    echoBonus: 0,
+    orbitals: 0,
+    orbitalDamagePct: 0,
+    orbitalSizePct: 0,
+    drones: 0,
+    droneDamagePct: 0,
+    droneFireRatePct: 0,
+    mineChance: 0,
+    well: 0,
+    storm: 0,
+    bloodAura: 0,
+    sanctuaryAura: 0,
+    damageVariance: 0,
+    bloodPrice: 0,
+    patient: 0,
+    rush: 0,
+    stormDoctrine: 0,
+    predator: 0,
+    cosmology: 0,
+    onDashShots: 0,
+  }
+
+  for (const [id, amount] of Object.entries(Game.talentCounts)) {
+    const talent = TalentById[id]
+
+    if (!talent) {
+      continue
+    }
+
+    for (const [key, value] of Object.entries(talent.effects)) {
+      if (stats[key] == null) {
+        stats[key] = 0
+      }
+
+      stats[key] += value * amount
+    }
+  }
+
+  if (stats.stormDoctrine > 0) {
+    const elementCount = CountTalent('sparkRounds') + CountTalent('emberCore') + CountTalent('frostTip') + CountTalent('venomTouch') + CountTalent('thunderCrown') + CountTalent('whiteFurnace') + CountTalent('absoluteZero')
+    stats.damage *= 1 + elementCount * 0.05
+  }
+
+  stats.maxHp = Math.max(30, stats.maxHp)
+  stats.fireRate = Math.max(0.7, stats.fireRate * (1 + (stats.fireRatePct || 0)))
+  stats.damage = Math.max(4, stats.damage * (1 + (stats.damagePct || 0)))
+  stats.bulletSpeed = Math.max(260, stats.bulletSpeed * (1 + (stats.bulletSpeedPct || 0)))
+  stats.range = Math.max(220, stats.range * (1 + (stats.rangePct || 0)))
+  stats.bulletSize = Math.max(3, stats.bulletSize * (1 + (stats.bulletSizePct || 0)))
+  stats.speed = Math.max(120, stats.speed * (1 + (stats.speedPct || 0)))
+  stats.accel = Math.max(4, stats.accel * (1 + (stats.accelPct || 0)))
+  stats.dashCd = Math.max(0.5, stats.dashCd * (1 + (stats.dashCdPct || 0)))
+  stats.dashPower = Math.max(360, stats.dashPower * (1 + (stats.dashPowerPct || 0)))
+  stats.pickup = Math.max(32, stats.pickup)
+  stats.xpMult = Math.max(0.4, stats.xpMult)
+  stats.gemBonus = Math.max(0.2, stats.gemBonus)
+  stats.crit = Clamp(stats.crit, 0, 0.9)
+  stats.dodgeChance = Clamp(stats.dodgeChance, 0, 0.4)
+  stats.reflectChance = Clamp(stats.reflectChance || 0, 0, 0.7)
+  stats.projectiles = Math.max(1, Math.floor(stats.projectiles))
+  stats.chainCount = Math.max(0, Math.floor(stats.chainCount))
+  stats.orbitals = Math.max(0, Math.floor(stats.orbitals))
+  stats.drones = Math.max(0, Math.floor(stats.drones))
+  stats.onDashShots = Math.max(0, Math.floor(stats.onDashShots))
+  stats.revive = Math.max(0, Math.floor(stats.revive))
+  stats.well = Math.max(0, Math.floor(stats.well))
+  stats.storm = Math.max(0, Math.floor(stats.storm))
+  stats.bloodAura = Math.max(0, Math.floor(stats.bloodAura))
+  stats.sanctuaryAura = Math.max(0, Math.floor(stats.sanctuaryAura))
+
+  Player.stats = stats
+  Player.maxHp = stats.maxHp
+  Player.hp = Clamp(initial ? stats.maxHp : Player.maxHp * hpRatio, 1, stats.maxHp)
+  Player.maxShield = stats.shieldMax
+  Player.shield = initial ? stats.shieldMax : Clamp(stats.shieldMax * shieldRatio, 0, stats.shieldMax)
+  Player.reviveLeft = stats.revive
+
+  SyncOrbitalsAndDrones()
+}
+
+function SyncOrbitalsAndDrones() {
+  while (Game.orbitals.length < Player.stats.orbitals) {
+    Game.orbitals.push({ angle: Rand(0, Math.PI * 2), radius: 58 + Game.orbitals.length * 10, hitMemory: new Map() })
+  }
+
+  while (Game.orbitals.length > Player.stats.orbitals) {
+    Game.orbitals.pop()
+  }
+
+  while (Game.drones.length < Player.stats.drones) {
+    Game.drones.push({ angle: Rand(0, Math.PI * 2), x: Player.x, y: Player.y, fireCd: Rand(0.1, 0.6) })
+  }
+
+  while (Game.drones.length > Player.stats.drones) {
+    Game.drones.pop()
+  }
+}
+
+function CalcNextXp(level) {
+  const base = 14 + level * 8 + Math.pow(level, 1.35) * 3.6
+  return Math.floor(base * (1 + Player.stats.xpNeedPct))
+}
+
+function SpawnFloater(x, y, text, color) {
+  Game.floaters.push({ x, y, text, color, life: 1.1, vy: -34 })
+}
+
+function SpawnParticle(x, y, color, count, spread) {
+  for (let i = 0; i < count; i++) {
+    Game.particles.push({
+      x,
+      y,
+      vx: Rand(-spread, spread),
+      vy: Rand(-spread, spread),
+      size: Rand(2, 5),
+      life: Rand(0.25, 0.6),
+      color,
+    })
+  }
+}
+
+function GainXp(value) {
+  Game.xp += value * Player.stats.xpMult
+
+  while (Game.xp >= Game.nextXp) {
+    Game.xp -= Game.nextXp
+    Game.level += 1
+    Game.nextXp = CalcNextXp(Game.level)
+    Player.hp = Clamp(Player.hp + 10, 0, Player.maxHp)
+    Player.shield = Clamp(Player.shield + 6, 0, Player.maxShield)
+    OfferTalents()
+  }
+}
+
+function CanOfferTalent(talent) {
+  if (CountTalent(talent.id) >= talent.max) {
+    return false
+  }
+
+  if (talent.rarity === 'keystone' && Game.level < 4) {
+    return false
+  }
+
+  if (talent.rarity === 'evolved' && Game.level < 5) {
+    return false
+  }
+
+  if (talent.requires) {
+    for (const requirement of talent.requires) {
+      if (CountTalent(requirement.id) < requirement.count) {
+        return false
+      }
+    }
+  }
+
+  if (talent.conflicts) {
+    for (const conflict of talent.conflicts) {
+      if (HasTalent(conflict)) {
+        return false
+      }
+    }
+  }
+
+  for (const ownedId of Object.keys(Game.talentCounts)) {
+    const owned = TalentById[ownedId]
+
+    if (owned?.conflicts?.includes(talent.id)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function RarityWeight(rarity) {
+  const luckScale = 1 + Player.stats.luck
+
+  if (rarity === 'common') return 8
+  if (rarity === 'uncommon') return 4 * luckScale
+  if (rarity === 'rare') return 2.25 * luckScale
+  if (rarity === 'keystone') return 1.15 * luckScale
+  if (rarity === 'evolved') return 1.4 * luckScale
+  return 1
+}
+
+function PickWeighted(pool, used) {
+  const filtered = pool.filter(t => !used.has(t.id))
+
+  if (filtered.length === 0) {
+    return null
+  }
+
+  let total = 0
+
+  for (const talent of filtered) {
+    total += RarityWeight(talent.rarity)
+  }
+
+  let roll = Math.random() * total
+
+  for (const talent of filtered) {
+    roll -= RarityWeight(talent.rarity)
+
+    if (roll <= 0) {
+      return talent
+    }
+  }
+
+  return filtered[filtered.length - 1]
+}
+
+function OfferTalents() {
+  const pool = TalentDefs.filter(CanOfferTalent)
+  const used = new Set()
+  const offers = []
+
+  const evolvedPool = pool.filter(t => t.rarity === 'evolved')
+
+  if (evolvedPool.length > 0 && Math.random() < 0.6 + Player.stats.luck * 0.35) {
+    const evolved = evolvedPool[Math.floor(Math.random() * evolvedPool.length)]
+    offers.push(evolved)
+    used.add(evolved.id)
+  }
+
+  while (offers.length < 4 && used.size < pool.length) {
+    const pick = PickWeighted(pool, used)
+
+    if (!pick) {
+      break
+    }
+
+    offers.push(pick)
+    used.add(pick.id)
+  }
+
+  Game.levelOffers = offers
+  Game.mode = 'talent'
+  TalentOverlay.style.display = 'grid'
+  TalentLevelText.textContent = 'Level ' + Game.level
+  RenderTalentCards()
+
+  if (Player.stats.timeSlowLevel > 0) {
+    Game.slowTimer = 0.55
+  }
+}
+
+function ChooseTalent(id) {
+  AddTalent(id)
+  TalentOverlay.style.display = 'none'
+  Game.levelOffers = []
+  Game.mode = 'playing'
+}
+
+function RenderTalentCards() {
+  TalentGrid.innerHTML = ''
+
+  for (const talent of Game.levelOffers) {
+    const card = document.createElement('div')
+    card.className = 'talentCard ' + talent.rarity
+
+    const tags = []
+    tags.push('Owned ' + CountTalent(talent.id) + '/' + talent.max)
+
+    if (talent.requires) {
+      tags.push('Requires ' + talent.requires.map(r => TalentById[r.id].name + ' ' + r.count).join(', '))
+    }
+
+    if (talent.conflicts) {
+      tags.push('Locks ' + talent.conflicts.map(id => TalentById[id]?.name || id).join(', '))
+    }
+
+    card.innerHTML = `
+      <div class="rarity ${talent.rarity}">${talent.rarity}</div>
+      <div class="talentName">${talent.name}</div>
+      <div class="talentDesc">${talent.desc}</div>
+      <div class="talentMeta">${tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+    `
+
+    card.addEventListener('click', () => ChooseTalent(talent.id))
+    TalentGrid.appendChild(card)
+  }
+}
+
+function RenderOwnedTalents() {
+  OwnedList.innerHTML = ''
+  const entries = Object.entries(Game.talentCounts)
+  TalentCountText.textContent = entries.length + ' Talents'
+
+  const sorted = entries.sort((a, b) => TalentById[a[0]].name.localeCompare(TalentById[b[0]].name))
+
+  for (const [id, amount] of sorted) {
+    const talent = TalentById[id]
+    const tag = document.createElement('div')
+    tag.className = 'ownedTag'
+    tag.textContent = talent.name + (amount > 1 ? ' x' + amount : '')
+    OwnedList.appendChild(tag)
+  }
+}
+
+function RenderShop() {
+  MenuEchoText.textContent = Meta.echoes + ' Echoes'
+  EchoText.textContent = Meta.echoes
+  ShopGrid.innerHTML = ''
+
+  for (const item of ShopDefs) {
+    const rank = Meta.shop[item.id] || 0
+    const cost = item.baseCost + rank * item.step
+    const disabled = rank >= item.max || Meta.echoes < cost
+
+    const wrap = document.createElement('div')
+    wrap.className = 'shopItem'
+    wrap.innerHTML = `
+      <div class="row">
+        <div>
+          <div class="tiny">Rank ${rank}/${item.max}</div>
+          <div style="font-weight: 900; font-size: 18px; margin-top: 4px;">${item.name}</div>
+        </div>
+        <div class="shopCost">${rank >= item.max ? 'Maxed' : cost + ' Echoes'}</div>
+      </div>
+      <div class="footerTips">${item.desc}</div>
+    `
+
+    const button = document.createElement('button')
+    button.className = disabled ? 'secondary' : 'primary'
+    button.textContent = rank >= item.max ? 'Max Rank' : 'Buy Upgrade'
+    button.disabled = disabled
+    button.addEventListener('click', () => PurchaseShop(item.id))
+    wrap.appendChild(button)
+    ShopGrid.appendChild(wrap)
+  }
+}
+
+function PurchaseShop(id) {
+  const item = ShopDefs.find(x => x.id === id)
+  const rank = Meta.shop[id] || 0
+
+  if (!item || rank >= item.max) {
+    return
+  }
+
+  const cost = item.baseCost + rank * item.step
+
+  if (Meta.echoes < cost) {
+    return
+  }
+
+  Meta.echoes -= cost
+  Meta.shop[id] = rank + 1
+  SaveMeta()
+  RenderShop()
+}
+
+function ResetPrestigeShop() {
+  Meta.shop = {
+    vitality: 0,
+    arsenal: 0,
+    magnetism: 0,
+    scholarship: 0,
+    momentum: 0,
+    aegis: 0,
+    fortune: 0,
+    reserve: 0,
+  }
+  SaveMeta()
+  RenderShop()
+}
+
+function SpawnEnemy(kind, elite = false, x = null, y = null) {
+  const scale = 1 + Game.time * 0.014 + (elite ? 0.3 : 0)
+  const side = Math.floor(Math.random() * 4)
+  let spawnX = x
+  let spawnY = y
+
+  if (spawnX == null || spawnY == null) {
+    if (side === 0) {
+      spawnX = Rand(0, Width)
+      spawnY = -40
+    } else if (side === 1) {
+      spawnX = Width + 40
+      spawnY = Rand(0, Height)
+    } else if (side === 2) {
+      spawnX = Rand(0, Width)
+      spawnY = Height + 40
+    } else {
+      spawnX = -40
+      spawnY = Rand(0, Height)
+    }
+  }
+
+  const config = {
+    drifter: { hp: 26, speed: 86, r: 13, xp: 4, damage: 10, score: 5, color: Colors.enemy },
+    skitter: { hp: 17, speed: 132, r: 10, xp: 3, damage: 8, score: 4, color: '#ff8f7a' },
+    bruiser: { hp: 54, speed: 64, r: 19, xp: 8, damage: 16, score: 9, color: '#ffa96e' },
+    sentry: { hp: 30, speed: 56, r: 14, xp: 7, damage: 10, score: 7, color: '#ffcf7a' },
+  }[kind]
+
+  if (!config) {
+    return
+  }
+
+  Game.enemies.push({
+    type: 'enemy',
+    kind,
+    x: spawnX,
+    y: spawnY,
+    vx: 0,
+    vy: 0,
+    r: config.r * (elite ? 1.18 : 1),
+    hp: config.hp * scale * (elite ? 2.25 : 1),
+    maxHp: config.hp * scale * (elite ? 2.25 : 1),
+    speed: config.speed * Math.min(1.6, 1 + Game.time * 0.004),
+    xp: Math.round(config.xp * Player.stats.gemBonus * (elite ? 2.8 : 1)),
+    damage: config.damage * (elite ? 1.5 : 1),
+    score: Math.round(config.score * (1 + Player.stats.scoreBonus) * (elite ? 3 : 1)),
+    color: elite ? Colors.elite : config.color,
+    elite,
+    shootCd: Rand(1.1, 2.2),
+    wobble: Rand(0, Math.PI * 2),
+    status: {
+      burn: 0,
+      poison: 0,
+      bleed: 0,
+      chill: 0,
+      freeze: 0,
+    },
+  })
+}
+
+function SpawnBoss() {
+  Game.bossSpawned = true
+  Game.enemies.push({
+    type: 'boss',
+    kind: 'skyTyrant',
+    x: Width * 0.5,
+    y: -120,
+    vx: 0,
+    vy: 45,
+    r: 46,
+    hp: 2600 + Game.level * 70,
+    maxHp: 2600 + Game.level * 70,
+    speed: 74,
+    xp: 0,
+    damage: 20,
+    score: 240,
+    color: '#ffd76a',
+    elite: true,
+    shootCd: 1.6,
+    summonCd: 5.2,
+    chargeCd: 7.5,
+    phase: 0,
+    ring: 0,
+    status: {
+      burn: 0,
+      poison: 0,
+      bleed: 0,
+      chill: 0,
+      freeze: 0,
+    },
+  })
+
+  BossPanel.classList.remove('hidden')
+  GoalText.textContent = 'Beat the boss'
+  RunTip.textContent = 'The Sky Tyrant is here. Stay moving during bullet rings, then punish the recovery windows.'
+}
+
+function SpawnBullet(x, y, angle, damage, owner, options = {}) {
+  Game.bullets.push({
+    x,
+    y,
+    vx: Math.cos(angle) * (options.speed || Player.stats.bulletSpeed),
+    vy: Math.sin(angle) * (options.speed || Player.stats.bulletSpeed),
+    life: options.life || Player.stats.range / (options.speed || Player.stats.bulletSpeed),
+    r: options.size || Player.stats.bulletSize,
+    damage,
+    pierce: options.pierce ?? Player.stats.pierce,
+    color: options.color || (owner === 'drone' ? '#b9d8ff' : Colors.accent),
+    homing: options.homing ?? Player.stats.homing,
+    owner,
+  })
+}
+
+function SpawnEnemyBullet(x, y, angle, speed, damage, size, color = '#ff7f8a') {
+  Game.enemyBullets.push({
+    x,
+    y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    life: 7,
+    r: size,
+    damage,
+    color,
+    nearMissed: false,
+  })
+}
+
+function SpawnGem(x, y, value) {
+  Game.gems.push({
+    x,
+    y,
+    vx: Rand(-22, 22),
+    vy: Rand(-22, 22),
+    r: 7,
+    value,
+    life: 18,
+  })
+}
+
+function SpawnHazard(x, y, radius, damage, duration, color) {
+  Game.hazards.push({ x, y, radius, damage, duration, tick: 0.18, color })
+}
+
+function FireAutoShot() {
+  if (Game.mode !== 'playing') {
+    return
+  }
+
+  if (Player.fireCd > 0) {
+    return
+  }
+
+  const target = FindNearestEnemy(Player.x, Player.y)
+
+  if (!target) {
+    return
+  }
+
+  let fireRateMult = 1
+
+  if (Player.stats.rush > 0) {
+    fireRateMult += Clamp(Player.movingTime / 2.5, 0, 0.35)
+  }
+
+  Player.fireCd = 1 / (Player.stats.fireRate * fireRateMult)
+
+  const baseAngle = Math.atan2(target.y - Player.y, target.x - Player.x)
+  const count = Player.stats.projectiles
+
+  for (let i = 0; i < count; i++) {
+    const spreadIndex = i - (count - 1) / 2
+    const angle = baseAngle + spreadIndex * Player.stats.spread
+    SpawnBullet(Player.x, Player.y, angle, ComputeShotDamage(target), 'player')
+  }
+
+  SpawnParticle(Player.x, Player.y, Colors.accent, 2 + count, 24)
+}
+
+function ComputeShotDamage(target) {
+  let damage = Player.stats.damage
+
+  if (Player.stats.damageVariance > 0) {
+    damage *= 1 + Rand(-Player.stats.damageVariance, Player.stats.damageVariance)
+  }
+
+  if (Player.stats.patient > 0) {
+    damage *= 1 + Clamp(Player.stationaryTime * 0.11, 0, 0.35)
+  }
+
+  if (Player.stats.bloodPrice > 0 && Player.hp / Player.maxHp < 0.6) {
+    damage *= 1.25
+  }
+
+  if (Player.omenTimer > 0) {
+    damage *= 1.22
+  }
+
+  if (Player.stats.predator > 0 && target && target.hp / target.maxHp < 0.4) {
+    damage *= 1.18
+  }
+
+  return damage
+}
+
+function FindNearestEnemy(x, y) {
+  let best = null
+  let bestDist = Infinity
+
+  for (const enemy of Game.enemies) {
+    const dist = Dist(x, y, enemy.x, enemy.y)
+
+    if (dist < bestDist) {
+      best = enemy
+      bestDist = dist
+    }
+  }
+
+  return best
+}
+
+function TriggerDash() {
+  if (Game.mode !== 'playing') {
+    return
+  }
+
+  if (Player.dashCd > 0 || Player.dashTime > 0) {
     return
   }
 
   let dx = 0
   let dy = 0
 
-  if (Touch.joystickActive) {
-    dx = Touch.x
-    dy = Touch.y
-  } else if (Input.pointerActive) {
-    dx = Input.pointerX - Player.x
-    dy = Input.pointerY - Player.y
-  } else {
-    if (Input.left) dx -= 1
-    if (Input.right) dx += 1
-    if (Input.up) dy -= 1
-    if (Input.down) dy += 1
-  }
+  if (Input.left) dx -= 1
+  if (Input.right) dx += 1
+  if (Input.up) dy -= 1
+  if (Input.down) dy += 1
 
   if (dx === 0 && dy === 0) {
-    dy = -1
+    const target = FindNearestEnemy(Player.x, Player.y)
+
+    if (target) {
+      dx = target.x - Player.x
+      dy = target.y - Player.y
+    } else {
+      dy = -1
+    }
   }
 
   const mag = Math.hypot(dx, dy) || 1
   dx /= mag
   dy /= mag
 
-  Player.vx = dx * 920
-  Player.vy = dy * 920
-  Player.dashTime = Player.dashDuration
-  Player.invuln = Player.dashDuration + 0.08
-  Player.dashCooldown = Player.dashCooldownMax
-  State.flash = 0.14
+  Player.dashDirX = dx
+  Player.dashDirY = dy
+  Player.dashTime = 0.15
+  Player.invuln = Player.stats.dashInvuln
+  Player.dashCd = Player.stats.dashCd
+  Player.vx = dx * Player.stats.dashPower
+  Player.vy = dy * Player.stats.dashPower
+  Player.shield = Clamp(Player.shield + Player.stats.dashShield, 0, Player.maxShield)
 
-  for (let i = 0; i < 18; i++) {
-    Particles.push({
-      x: Player.x,
-      y: Player.y,
-      vx: Random(-220, 220) - dx * 180,
-      vy: Random(-220, 220) - dy * 180,
-      size: Random(2, 5),
-      life: Random(0.2, 0.45),
-      color: Math.random() < 0.5 ? "#76e4ff" : "#a46dff"
-    })
+  if (Player.stats.onDashShots > 0) {
+    const count = Player.stats.onDashShots
+
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count
+      SpawnBullet(Player.x, Player.y, angle, Player.stats.damage * 0.45, 'player', { size: Player.stats.bulletSize * 0.82, speed: Player.stats.bulletSpeed * 0.92, life: 0.75 })
+    }
+  }
+
+  if (Player.stats.mineChance > 0 && Math.random() < Player.stats.mineChance) {
+    SpawnHazard(Player.x, Player.y, 30, Player.stats.damage * 0.9, 2.6, 'rgba(121, 231, 255, 0.45)')
+  }
+
+  SpawnParticle(Player.x, Player.y, Colors.accent2, 18, 180)
+}
+
+function HitPlayer(rawDamage) {
+  if (Player.invuln > 0 || Player.hitCd > 0 || Game.mode !== 'playing') {
+    return
+  }
+
+  if (Math.random() < Player.stats.dodgeChance) {
+    Player.omenTimer = Player.stats.omen > 0 ? 1.8 : Player.omenTimer
+    SpawnFloater(Player.x, Player.y - 18, 'DODGE', '#79e7ff')
+    Player.hitCd = 0.08
+    return
+  }
+
+  let damage = rawDamage * (100 / (100 + Player.stats.armor * 16))
+
+  if (Player.shield > 0) {
+    const absorbed = Math.min(Player.shield, damage)
+    Player.shield -= absorbed
+    damage -= absorbed
+  }
+
+  if (damage > 0) {
+    Player.hp -= damage
+  }
+
+  Player.hitCd = 0.45
+  Player.invuln = 0.35
+  SpawnParticle(Player.x, Player.y, '#ff657d', 12, 140)
+
+  if (Player.stats.panicPulse > 0 && Player.hp / Player.maxHp < 0.35 && Player.panicPulseCd <= 0) {
+    Player.panicPulseCd = 10
+    SpawnHazard(Player.x, Player.y, 92, Player.stats.damage * 1.8, 0.3, 'rgba(255, 101, 125, 0.35)')
+    SpawnFloater(Player.x, Player.y - 22, 'DEFIANT PULSE', '#ffb2bf')
+  }
+
+  if (Player.hp <= 0) {
+    if (Player.reviveLeft > 0) {
+      Player.reviveLeft -= 1
+      Player.hp = Player.maxHp * 0.45
+      Player.shield = Math.max(Player.shield, Player.maxShield * 0.55)
+      Player.invuln = 2.2
+      SpawnHazard(Player.x, Player.y, 110, Player.stats.damage * 2.2, 0.42, 'rgba(158, 123, 255, 0.45)')
+      SpawnFloater(Player.x, Player.y - 22, 'RESERVE', '#cdb7ff')
+    } else {
+      EndRun(false)
+    }
   }
 }
 
-function Crash() {
-  State.mode = "gameover"
-  State.best = Math.max(State.best, Math.floor(State.score))
-  localStorage.setItem("skyDashBest", String(State.best))
-  BestText.textContent = State.best
+function ApplyStatus(enemy, type, duration, strength) {
+  enemy.status[type] = Math.max(enemy.status[type] || 0, duration)
+  enemy.status[type + 'Power'] = Math.max(enemy.status[type + 'Power'] || 0, strength)
+}
 
-  for (let i = 0; i < 34; i++) {
-    Particles.push({
-      x: Player.x,
-      y: Player.y,
-      vx: Random(-260, 260),
-      vy: Random(-260, 260),
-      size: Random(2, 7),
-      life: Random(0.35, 0.8),
-      color: Math.random() < 0.55 ? "#ff617d" : "#ffd76a"
-    })
+function DamageEnemy(enemy, rawDamage, source) {
+  if (!enemy || enemy.hp <= 0) {
+    return false
   }
 
-  State.screenShake = 16
-  State.flash = 0.25
-  ShowMenu(true)
+  let damage = rawDamage
+  let crit = false
+
+  if (Math.random() < Player.stats.crit) {
+    crit = true
+    damage *= Player.stats.critMult
+  }
+
+  if (enemy.elite || enemy.type === 'boss') {
+    damage *= 1 + Player.stats.bossDamagePct
+  }
+
+  enemy.hp -= damage
+  Game.score += damage * 0.35
+  SpawnFloater(enemy.x, enemy.y - enemy.r - 8, Math.round(damage) + (crit ? '!' : ''), crit ? '#ffd76a' : '#ffffff')
+
+  if (Player.stats.lifesteal > 0) {
+    Player.hp = Clamp(Player.hp + damage * Player.stats.lifesteal, 0, Player.maxHp)
+  }
+
+  if (Math.random() < Player.stats.burnChance) {
+    ApplyStatus(enemy, 'burn', 2.6, Player.stats.damage * (0.16 + Player.stats.burnPower))
+  }
+
+  if (Math.random() < Player.stats.poisonChance) {
+    ApplyStatus(enemy, 'poison', 3.8, Player.stats.damage * (0.12 + Player.stats.poisonPower))
+  }
+
+  if (Math.random() < Player.stats.bleedChance) {
+    ApplyStatus(enemy, 'bleed', 2.4, Player.stats.damage * (0.12 + Player.stats.bleedPower))
+  }
+
+  if (Math.random() < Player.stats.chillChance) {
+    ApplyStatus(enemy, 'chill', 2.2, 0.22 + Player.stats.chillPower)
+
+    if (Math.random() < Player.stats.freezeChance) {
+      ApplyStatus(enemy, 'freeze', 0.8, 1)
+    }
+  }
+
+  if (Math.random() < Player.stats.shockChance || Math.random() < Player.stats.chainChance) {
+    ChainShock(enemy, damage * (0.48 + Player.stats.chainDamagePct), 1 + Player.stats.chainCount)
+  }
+
+  if (enemy.hp <= 0) {
+    KillEnemy(enemy, source)
+    return true
+  }
+
+  return false
 }
 
-function SpawnStarField() {
-  Stars.length = 0
+function ChainShock(origin, damage, jumps) {
+  let current = origin
+  const hit = new Set([origin])
 
-  const count = Math.floor((Width * Height) / 9000)
+  for (let i = 0; i < jumps; i++) {
+    let best = null
+    let bestDist = Infinity
 
-  for (let i = 0; i < count; i++) {
-    Stars.push({
-      x: Math.random() * Width,
-      y: Math.random() * Height,
-      size: Random(0.8, 2.6),
-      speed: Random(20, 140),
-      alpha: Random(0.2, 0.8)
-    })
+    for (const enemy of Game.enemies) {
+      if (hit.has(enemy)) {
+        continue
+      }
+
+      const dist = Dist(current.x, current.y, enemy.x, enemy.y)
+
+      if (dist < bestDist && dist < 220) {
+        best = enemy
+        bestDist = dist
+      }
+    }
+
+    if (!best) {
+      break
+    }
+
+    hit.add(best)
+    best.hp -= damage
+    ApplyStatus(best, 'chill', 0.8, Player.stats.shockSlow)
+    SpawnParticle(best.x, best.y, '#b9c7ff', 8, 110)
+
+    if (best.hp <= 0) {
+      KillEnemy(best, 'shock')
+    }
+
+    current = best
   }
 }
 
-function SpawnObstacle() {
-  const scale = Clamp(0.9 + State.difficulty * 0.16, 0.9, 2.8)
-  const width = Random(52, 140) * scale
-  const height = Random(20, 34) * scale
-  const x = Random(20, Width - 20 - width)
-  const speed = Random(230, 350) + State.difficulty * 55
-  const rot = Random(-0.3, 0.3)
-  const type = Math.random() < 0.18 ? "spinner" : "wall"
+function KillEnemy(enemy, source) {
+  const index = Game.enemies.indexOf(enemy)
 
-  Obstacles.push({
-    x,
-    y: -height - 30,
-    w: width,
-    h: height,
-    speed,
-    rot,
-    type,
-    rotSpeed: Random(-2.6, 2.6),
-    glow: Random(0.2, 1)
-  })
+  if (index >= 0) {
+    Game.enemies.splice(index, 1)
+  }
+
+  Game.kills += 1
+  Game.score += enemy.score
+  SpawnParticle(enemy.x, enemy.y, enemy.type === 'boss' ? '#ffd76a' : enemy.color, enemy.type === 'boss' ? 36 : 12, enemy.type === 'boss' ? 260 : 120)
+
+  if (enemy.type !== 'boss') {
+    SpawnGem(enemy.x, enemy.y, enemy.xp)
+  }
+
+  if (Player.stats.deathNova > 0 && Math.random() < Player.stats.deathNova) {
+    SpawnHazard(enemy.x, enemy.y, 48, Player.stats.damage * 1.1, 0.32, 'rgba(158, 123, 255, 0.35)')
+  }
+
+  if (enemy.status?.burn > 0 && Player.stats.burnBurst > 0) {
+    SpawnHazard(enemy.x, enemy.y, 54, Player.stats.damage * (0.8 + Player.stats.burnBurst), 0.42, 'rgba(255, 170, 110, 0.38)')
+  }
+
+  if (enemy.status?.poison > 0 && Player.stats.plagueSpread > 0) {
+    for (const other of Game.enemies) {
+      if (other === enemy) {
+        continue
+      }
+
+      if (Dist(enemy.x, enemy.y, other.x, other.y) < 110 && Math.random() < Player.stats.plagueSpread) {
+        ApplyStatus(other, 'poison', 3.4, Player.stats.damage * (0.12 + Player.stats.poisonPower))
+      }
+    }
+  }
+
+  if (enemy.type === 'boss') {
+    Game.bossKilled = true
+    BossPanel.classList.add('hidden')
+    EndRun(true)
+  }
 }
 
-function SpawnShard() {
-  const radius = Random(7, 10)
-  const x = Random(40, Width - 40)
-  const speed = Random(230, 330) + State.difficulty * 40
+function UpdateStars(dt) {
+  for (const star of Game.stars) {
+    star.y += star.speed * dt
 
-  Shards.push({
-    x,
-    y: -30,
-    radius,
-    speed,
-    bob: Random(0, Math.PI * 2)
-  })
+    if (star.y > Height + 8) {
+      star.y = -8
+      star.x = Math.random() * Width
+    }
+  }
 }
 
 function UpdatePlayer(dt) {
-  let moveX = 0
-  let moveY = 0
+  let dx = 0
+  let dy = 0
 
-  if (Touch.joystickActive) {
-    moveX = Touch.x
-    moveY = Touch.y
-  } else if (Input.pointerActive && Width > 700) {
-    const dx = Input.pointerX - Player.x
-    const dy = Input.pointerY - Player.y
-    const mag = Math.hypot(dx, dy)
+  if (Input.left) dx -= 1
+  if (Input.right) dx += 1
+  if (Input.up) dy -= 1
+  if (Input.down) dy += 1
 
-    if (mag > 6) {
-      moveX = dx / mag
-      moveY = dy / mag
-    }
+  const mag = Math.hypot(dx, dy) || 1
+  dx /= mag
+  dy /= mag
+
+  const moving = Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01
+
+  if (moving) {
+    Player.stationaryTime = 0
+    Player.movingTime += dt
   } else {
-    if (Input.left) moveX -= 1
-    if (Input.right) moveX += 1
-    if (Input.up) moveY -= 1
-    if (Input.down) moveY += 1
-
-    const mag = Math.hypot(moveX, moveY) || 1
-    moveX /= mag
-    moveY /= mag
+    Player.movingTime = 0
+    Player.stationaryTime += dt
   }
 
   if (Player.dashTime > 0) {
     Player.dashTime -= dt
-  } else {
-    Player.vx += moveX * Player.speed * dt * 5.2
-    Player.vy += moveY * Player.speed * dt * 5.2
-  }
+    Player.vx = Player.dashDirX * Player.stats.dashPower
+    Player.vy = Player.dashDirY * Player.stats.dashPower
 
-  Player.vx *= Math.pow(Player.friction, dt * 60)
-  Player.vy *= Math.pow(Player.friction, dt * 60)
+    if (Player.stats.dashTrail > 0 && Math.random() < 0.38) {
+      SpawnHazard(Player.x, Player.y, 20 + Player.stats.dashTrail * 8, Player.stats.damage * 0.65, 0.55, 'rgba(158, 123, 255, 0.26)')
+    }
+  } else {
+    Player.vx = Lerp(Player.vx, dx * Player.stats.speed, dt * Player.stats.accel)
+    Player.vy = Lerp(Player.vy, dy * Player.stats.speed, dt * Player.stats.accel)
+  }
 
   Player.x += Player.vx * dt
   Player.y += Player.vy * dt
+  Player.x = Clamp(Player.x, Player.r + 6, Width - Player.r - 6)
+  Player.y = Clamp(Player.y, Player.r + 6, Height - Player.r - 6)
 
-  const margin = 22
-  Player.x = Clamp(Player.x, margin, Width - margin)
-  Player.y = Clamp(Player.y, margin, Height - margin)
+  Player.fireCd = Math.max(0, Player.fireCd - dt)
+  Player.dashCd = Math.max(0, Player.dashCd - dt)
+  Player.hitCd = Math.max(0, Player.hitCd - dt)
+  Player.invuln = Math.max(0, Player.invuln - dt)
+  Player.omenTimer = Math.max(0, Player.omenTimer - dt)
+  Player.panicPulseCd = Math.max(0, Player.panicPulseCd - dt)
 
-  if (Player.dashCooldown > 0) {
-    Player.dashCooldown -= dt
+  if (Player.maxShield > 0) {
+    Player.shield = Clamp(Player.shield + Player.stats.shieldRegen * dt * 12, 0, Player.maxShield)
   }
 
-  if (Player.invuln > 0) {
-    Player.invuln -= dt
-  }
+  Player.hp = Clamp(Player.hp + Player.stats.regen * dt, 0, Player.maxHp)
 
-  Player.trail.push({
-    x: Player.x,
-    y: Player.y,
-    life: Player.dashTime > 0 ? 0.32 : 0.14,
-    size: Player.radius
-  })
+  Player.trail.push({ x: Player.x, y: Player.y, life: Player.dashTime > 0 ? 0.26 : 0.12 })
 
-  if (Player.trail.length > 24) {
+  while (Player.trail.length > 24) {
     Player.trail.shift()
   }
 
@@ -760,367 +2002,689 @@ function UpdatePlayer(dt) {
       Player.trail.splice(i, 1)
     }
   }
+
+  FireAutoShot()
 }
 
-function UpdateStars(dt) {
-  for (const star of Stars) {
-    star.y += star.speed * dt * (0.55 + State.difficulty * 0.12)
+function UpdateDronesAndOrbitals(dt) {
+  const orbitalDamage = Player.stats.damage * (0.7 + Player.stats.orbitalDamagePct)
+  const orbitalRadius = 54 + Player.stats.orbitalSizePct * 40 + (Player.stats.cosmology > 0 ? 16 : 0)
 
-    if (star.y > Height + 10) {
-      star.y = -10
-      star.x = Math.random() * Width
-      star.size = Random(0.8, 2.6)
-      star.speed = Random(20, 140)
+  for (let i = 0; i < Game.orbitals.length; i++) {
+    const orbital = Game.orbitals[i]
+    orbital.angle += dt * (1.8 + i * 0.12)
+    orbital.radius = orbitalRadius + i * 12
+    orbital.x = Player.x + Math.cos(orbital.angle) * orbital.radius
+    orbital.y = Player.y + Math.sin(orbital.angle) * orbital.radius
+
+    for (const enemy of Game.enemies) {
+      const dist = Dist(orbital.x, orbital.y, enemy.x, enemy.y)
+      const hitRadius = 14 + Player.stats.orbitalSizePct * 12
+      const cd = orbital.hitMemory.get(enemy) || 0
+
+      if (cd <= 0 && dist < enemy.r + hitRadius) {
+        orbital.hitMemory.set(enemy, 0.35)
+        DamageEnemy(enemy, orbitalDamage, 'orbital')
+      }
+    }
+
+    for (const [enemy, cd] of orbital.hitMemory.entries()) {
+      orbital.hitMemory.set(enemy, cd - dt)
+
+      if (orbital.hitMemory.get(enemy) <= 0) {
+        orbital.hitMemory.delete(enemy)
+      }
+    }
+  }
+
+  for (let i = 0; i < Game.drones.length; i++) {
+    const drone = Game.drones[i]
+    const angle = Game.time * 1.4 + (Math.PI * 2 * i) / Math.max(1, Game.drones.length)
+    const targetX = Player.x + Math.cos(angle) * 42
+    const targetY = Player.y + Math.sin(angle) * 42 - 20
+    drone.x = Lerp(drone.x, targetX, dt * 6)
+    drone.y = Lerp(drone.y, targetY, dt * 6)
+    drone.fireCd -= dt
+
+    if (drone.fireCd <= 0) {
+      const target = FindNearestEnemy(drone.x, drone.y)
+
+      if (target) {
+        const fireRate = 1.2 * (1 + Player.stats.droneFireRatePct)
+        drone.fireCd = Math.max(0.25, 1 / fireRate)
+        const angleTo = Math.atan2(target.y - drone.y, target.x - drone.x)
+        SpawnBullet(drone.x, drone.y, angleTo, Player.stats.damage * (0.55 + Player.stats.droneDamagePct), 'drone', { color: '#d7e7ff', size: 4.2, speed: Player.stats.bulletSpeed * 1.05, life: 1.4 })
+      }
     }
   }
 }
 
-function UpdateObstacles(dt) {
-  const obstacleTarget = Clamp(0.8 + State.time * 0.04, 0.8, 4.5)
+function UpdateBullets(dt) {
+  for (let i = Game.bullets.length - 1; i >= 0; i--) {
+    const bullet = Game.bullets[i]
 
-  if (Math.random() < obstacleTarget * dt) {
-    SpawnObstacle()
-  }
+    if (bullet.homing > 0) {
+      const target = FindNearestEnemy(bullet.x, bullet.y)
 
-  for (let i = Obstacles.length - 1; i >= 0; i--) {
-    const obstacle = Obstacles[i]
-    obstacle.y += obstacle.speed * dt
-    obstacle.rot += obstacle.rotSpeed * dt
-
-    if (obstacle.y > Height + 60) {
-      Obstacles.splice(i, 1)
-      State.score += 8
-      continue
+      if (target) {
+        const targetAngle = Math.atan2(target.y - bullet.y, target.x - bullet.x)
+        const currentAngle = Math.atan2(bullet.vy, bullet.vx)
+        const delta = Math.atan2(Math.sin(targetAngle - currentAngle), Math.cos(targetAngle - currentAngle))
+        const nextAngle = currentAngle + delta * dt * 4 * bullet.homing
+        const speed = Math.hypot(bullet.vx, bullet.vy)
+        bullet.vx = Math.cos(nextAngle) * speed
+        bullet.vy = Math.sin(nextAngle) * speed
+      }
     }
 
-    const closestX = Clamp(Player.x, obstacle.x, obstacle.x + obstacle.w)
-    const closestY = Clamp(Player.y, obstacle.y, obstacle.y + obstacle.h)
-    const hit = Dist(Player.x, Player.y, closestX, closestY) < Player.radius + 1
+    bullet.x += bullet.vx * dt
+    bullet.y += bullet.vy * dt
+    bullet.life -= dt
 
-    if (hit) {
-      if (Player.invuln > 0 || Player.dashTime > 0) {
-        Obstacles.splice(i, 1)
-        State.score += 12
-        State.screenShake = Math.max(State.screenShake, 8)
+    let remove = bullet.life <= 0 || bullet.x < -60 || bullet.x > Width + 60 || bullet.y < -60 || bullet.y > Height + 60
 
-        for (let n = 0; n < 12; n++) {
-          Particles.push({
-            x: closestX,
-            y: closestY,
-            vx: Random(-260, 260),
-            vy: Random(-260, 260),
-            size: Random(2, 5),
-            life: Random(0.18, 0.42),
-            color: Math.random() < 0.5 ? "#76e4ff" : "#ffd76a"
-          })
+    if (!remove) {
+      for (const enemy of Game.enemies.slice()) {
+        if (Dist(bullet.x, bullet.y, enemy.x, enemy.y) < bullet.r + enemy.r) {
+          DamageEnemy(enemy, bullet.damage, bullet.owner)
+          bullet.pierce -= 1
+
+          if (bullet.pierce < 0) {
+            remove = true
+            break
+          }
+        }
+      }
+    }
+
+    if (remove) {
+      Game.bullets.splice(i, 1)
+    }
+  }
+}
+
+function UpdateEnemyBullets(dt) {
+  for (let i = Game.enemyBullets.length - 1; i >= 0; i--) {
+    const bullet = Game.enemyBullets[i]
+    bullet.x += bullet.vx * dt
+    bullet.y += bullet.vy * dt
+    bullet.life -= dt
+
+    const near = Dist(bullet.x, bullet.y, Player.x, Player.y)
+
+    if (!bullet.nearMissed && near < Player.r + bullet.r + 12 && near > Player.r + bullet.r + 2) {
+      bullet.nearMissed = true
+
+      if (Player.stats.omen > 0) {
+        Player.omenTimer = 2
+        SpawnFloater(Player.x, Player.y - 26, 'OMEN', '#79e7ff')
+      }
+    }
+
+    if (near < Player.r + bullet.r) {
+      if (Math.random() < Player.stats.reflectChance) {
+        const target = FindNearestEnemy(bullet.x, bullet.y)
+
+        if (target) {
+          const angle = Math.atan2(target.y - bullet.y, target.x - bullet.x)
+          SpawnBullet(bullet.x, bullet.y, angle, Player.stats.damage * 0.8, 'reflect', { color: '#d4e7ff', size: bullet.r })
         }
       } else {
-        Crash()
-        return
+        HitPlayer(bullet.damage)
       }
-    }
-  }
-}
 
-function UpdateShards(dt) {
-  const shardTarget = Clamp(0.6 + State.time * 0.015, 0.6, 1.6)
-
-  if (Math.random() < shardTarget * dt) {
-    SpawnShard()
-  }
-
-  for (let i = Shards.length - 1; i >= 0; i--) {
-    const shard = Shards[i]
-    shard.y += shard.speed * dt
-    shard.bob += dt * 6
-
-    if (shard.y > Height + 30) {
-      Shards.splice(i, 1)
+      Game.enemyBullets.splice(i, 1)
       continue
     }
 
-    const hit = Dist(Player.x, Player.y, shard.x, shard.y) < Player.radius + shard.radius + 4
-
-    if (hit) {
-      Shards.splice(i, 1)
-      State.score += 20
-      State.shards += 1
-      State.flash = Math.max(State.flash, 0.08)
-
-      for (let n = 0; n < 10; n++) {
-        Particles.push({
-          x: shard.x,
-          y: shard.y,
-          vx: Random(-160, 160),
-          vy: Random(-160, 160),
-          size: Random(2, 5),
-          life: Random(0.22, 0.48),
-          color: Math.random() < 0.5 ? "#ffd76a" : "#ffffff"
-        })
-      }
+    if (bullet.life <= 0 || bullet.x < -80 || bullet.x > Width + 80 || bullet.y < -80 || bullet.y > Height + 80) {
+      Game.enemyBullets.splice(i, 1)
     }
   }
 }
 
-function UpdateParticles(dt) {
-  for (let i = Particles.length - 1; i >= 0; i--) {
-    const p = Particles[i]
-    p.x += p.vx * dt
-    p.y += p.vy * dt
-    p.vx *= 0.985
-    p.vy *= 0.985
-    p.life -= dt
+function UpdateGems(dt) {
+  for (let i = Game.gems.length - 1; i >= 0; i--) {
+    const gem = Game.gems[i]
+    gem.life -= dt
+    gem.vx *= 0.98
+    gem.vy *= 0.98
+    gem.x += gem.vx * dt * 60
+    gem.y += gem.vy * dt * 60
 
-    if (p.life <= 0) {
-      Particles.splice(i, 1)
+    const dist = Dist(gem.x, gem.y, Player.x, Player.y)
+
+    if (dist < Player.stats.pickup) {
+      const angle = Math.atan2(Player.y - gem.y, Player.x - gem.x)
+      gem.x += Math.cos(angle) * dt * 260
+      gem.y += Math.sin(angle) * dt * 260
     }
+
+    if (dist < Player.r + gem.r + 2) {
+      GainXp(gem.value)
+      SpawnParticle(gem.x, gem.y, Colors.xp, 5, 60)
+      Game.gems.splice(i, 1)
+      continue
+    }
+
+    if (gem.life <= 0) {
+      Game.gems.splice(i, 1)
+    }
+  }
+}
+
+function UpdateHazards(dt) {
+  for (let i = Game.hazards.length - 1; i >= 0; i--) {
+    const hazard = Game.hazards[i]
+    hazard.duration -= dt
+    hazard.tick -= dt
+
+    if (hazard.tick <= 0) {
+      hazard.tick = 0.18
+
+      for (const enemy of Game.enemies.slice()) {
+        if (Dist(hazard.x, hazard.y, enemy.x, enemy.y) < hazard.radius + enemy.r) {
+          DamageEnemy(enemy, hazard.damage * 0.18, 'hazard')
+        }
+      }
+    }
+
+    if (hazard.duration <= 0) {
+      Game.hazards.splice(i, 1)
+    }
+  }
+}
+
+function UpdateFloatersAndParticles(dt) {
+  for (let i = Game.floaters.length - 1; i >= 0; i--) {
+    const floater = Game.floaters[i]
+    floater.y += floater.vy * dt
+    floater.life -= dt
+
+    if (floater.life <= 0) {
+      Game.floaters.splice(i, 1)
+    }
+  }
+
+  for (let i = Game.particles.length - 1; i >= 0; i--) {
+    const particle = Game.particles[i]
+    particle.x += particle.vx * dt
+    particle.y += particle.vy * dt
+    particle.vx *= 0.985
+    particle.vy *= 0.985
+    particle.life -= dt
+
+    if (particle.life <= 0) {
+      Game.particles.splice(i, 1)
+    }
+  }
+}
+
+function UpdateEnemyStatus(enemy, dt) {
+  const status = enemy.status
+  let slow = 0
+
+  if (status.freeze > 0) {
+    status.freeze -= dt
+    slow = Math.max(slow, 1)
+  }
+
+  if (status.chill > 0) {
+    status.chill -= dt
+    slow = Math.max(slow, status.chillPower || 0.25)
+  }
+
+  if (status.burn > 0) {
+    status.burn -= dt
+    enemy.hp -= (status.burnPower || 0) * dt
+  }
+
+  if (status.poison > 0) {
+    status.poison -= dt
+    enemy.hp -= (status.poisonPower || 0) * dt
+  }
+
+  if (status.bleed > 0) {
+    status.bleed -= dt
+    enemy.hp -= (status.bleedPower || 0) * dt
+  }
+
+  return Clamp(1 - slow, 0, 1)
+}
+
+function UpdateEnemies(dt) {
+  if (!Game.bossSpawned && Game.time >= 120) {
+    SpawnBoss()
+  }
+
+  if (Game.mode === 'playing' && !Game.bossSpawned) {
+    Game.spawnTimer -= dt
+    Game.eliteTimer -= dt
+
+    if (Game.spawnTimer <= 0) {
+      Game.spawnTimer = Math.max(0.28, 1.12 - Game.time * 0.005)
+      const roll = Math.random()
+
+      if (roll < 0.35) {
+        SpawnEnemy('drifter')
+      } else if (roll < 0.6) {
+        SpawnEnemy('skitter')
+      } else if (roll < 0.82) {
+        SpawnEnemy('sentry')
+      } else {
+        SpawnEnemy('bruiser')
+      }
+    }
+
+    if (Game.eliteTimer <= 0) {
+      Game.eliteTimer = Math.max(14, 26 - Player.stats.eliteRate * 18)
+      SpawnEnemy(Math.random() < 0.5 ? 'drifter' : 'bruiser', true)
+    }
+  }
+
+  if (Game.bossSpawned && Game.mode === 'playing' && Math.random() < dt * 0.9) {
+    SpawnEnemy(Math.random() < 0.6 ? 'skitter' : 'drifter', false)
+  }
+
+  for (const enemy of Game.enemies.slice()) {
+    const statusMult = UpdateEnemyStatus(enemy, dt)
+
+    if (enemy.hp <= 0) {
+      KillEnemy(enemy, 'dot')
+      continue
+    }
+
+    if (enemy.type === 'boss') {
+      UpdateBoss(enemy, dt * statusMult)
+      continue
+    }
+
+    const angle = Math.atan2(Player.y - enemy.y, Player.x - enemy.x)
+    enemy.wobble += dt * (enemy.kind === 'skitter' ? 9 : 5)
+
+    if (enemy.kind === 'sentry') {
+      const dist = Dist(enemy.x, enemy.y, Player.x, Player.y)
+      const desired = dist > 240 ? 1 : dist < 180 ? -1 : 0
+      enemy.vx = Math.cos(angle) * enemy.speed * desired
+      enemy.vy = Math.sin(angle) * enemy.speed * desired
+      enemy.shootCd -= dt
+
+      if (enemy.shootCd <= 0) {
+        enemy.shootCd = enemy.elite ? 1.2 : 1.8
+        SpawnEnemyBullet(enemy.x, enemy.y, angle, 280 + (enemy.elite ? 60 : 0), enemy.damage, enemy.elite ? 6 : 5, enemy.elite ? '#ffd76a' : '#ff8a94')
+      }
+    } else if (enemy.kind === 'skitter') {
+      enemy.vx = Math.cos(angle + Math.sin(enemy.wobble) * 0.65) * enemy.speed
+      enemy.vy = Math.sin(angle + Math.cos(enemy.wobble * 0.9) * 0.65) * enemy.speed
+    } else {
+      enemy.vx = Math.cos(angle) * enemy.speed
+      enemy.vy = Math.sin(angle) * enemy.speed
+    }
+
+    enemy.x += enemy.vx * dt * statusMult
+    enemy.y += enemy.vy * dt * statusMult
+
+    if (Dist(enemy.x, enemy.y, Player.x, Player.y) < enemy.r + Player.r) {
+      HitPlayer(enemy.damage)
+    }
+  }
+}
+
+function UpdateBoss(boss, dt) {
+  if (boss.phase === 0) {
+    boss.y += boss.vy * dt
+
+    if (boss.y >= 120) {
+      boss.phase = 1
+      boss.vy = 0
+    }
+  } else {
+    const targetX = Width * 0.5 + Math.sin(Game.time * 0.6) * (Width * 0.28)
+    boss.x = Lerp(boss.x, targetX, dt * 1.8)
+    boss.y = Lerp(boss.y, 126 + Math.sin(Game.time * 1.3) * 16, dt * 2)
+    boss.shootCd -= dt
+    boss.summonCd -= dt
+    boss.chargeCd -= dt
+
+    if (boss.shootCd <= 0) {
+      boss.shootCd = boss.hp < boss.maxHp * 0.45 ? 1.1 : 1.6
+      const count = boss.hp < boss.maxHp * 0.45 ? 18 : 12
+      const offset = Game.time * 0.8
+
+      for (let i = 0; i < count; i++) {
+        const angle = offset + (Math.PI * 2 * i) / count
+        SpawnEnemyBullet(boss.x, boss.y, angle, 220 + (boss.hp < boss.maxHp * 0.45 ? 42 : 0), boss.damage, 5, '#ffd76a')
+      }
+    }
+
+    if (boss.summonCd <= 0) {
+      boss.summonCd = boss.hp < boss.maxHp * 0.5 ? 3.8 : 5.2
+      SpawnEnemy(Math.random() < 0.5 ? 'sentry' : 'drifter', false, boss.x + Rand(-80, 80), boss.y + Rand(-20, 20))
+      SpawnEnemy('skitter', false, boss.x + Rand(-80, 80), boss.y + Rand(-20, 20))
+    }
+
+    if (boss.chargeCd <= 0) {
+      boss.chargeCd = 6.4
+      const angle = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+
+      for (let i = -2; i <= 2; i++) {
+        SpawnEnemyBullet(boss.x, boss.y, angle + i * 0.16, 350, boss.damage + 6, 7, '#ff9e6f')
+      }
+    }
+  }
+
+  if (Dist(boss.x, boss.y, Player.x, Player.y) < boss.r + Player.r) {
+    HitPlayer(boss.damage)
+  }
+
+  BossNameText.textContent = 'The Sky Tyrant'
+  BossHpText.textContent = Math.max(0, Math.floor(boss.hp)) + ' / ' + Math.floor(boss.maxHp)
+  BossFill.style.transform = `scaleX(${Clamp(boss.hp / boss.maxHp, 0, 1)})`
+}
+
+function UpdateAuras(dt) {
+  if (Player.stats.well > 0 && Math.floor((Game.time - dt) * 2.4) !== Math.floor(Game.time * 2.4)) {
+    const wellRadius = 120 + Player.stats.well * 26 + (Player.stats.cosmology > 0 ? 26 : 0)
+
+    for (const enemy of Game.enemies) {
+      const dist = Dist(Player.x, Player.y, enemy.x, enemy.y)
+
+      if (dist < wellRadius) {
+        const angle = Math.atan2(Player.y - enemy.y, Player.x - enemy.x)
+        enemy.x += Math.cos(angle) * (18 + Player.stats.well * 4)
+        enemy.y += Math.sin(angle) * (18 + Player.stats.well * 4)
+        DamageEnemy(enemy, Player.stats.damage * 0.18 * Player.stats.well, 'well')
+      }
+    }
+
+    SpawnParticle(Player.x, Player.y, '#9e7bff', 10, 90)
+  }
+
+  if (Player.stats.storm > 0 && Math.floor((Game.time - dt) * 1.8) !== Math.floor(Game.time * 1.8)) {
+    const target = FindNearestEnemy(Player.x, Player.y)
+
+    if (target) {
+      DamageEnemy(target, Player.stats.damage * (0.85 + Player.stats.storm * 0.28), 'storm')
+      SpawnParticle(target.x, target.y, '#d9efff', 14, 120)
+      SpawnHazard(target.x, target.y, 28, Player.stats.damage * 0.7, 0.2, 'rgba(121, 231, 255, 0.25)')
+    }
+  }
+
+  if (Player.stats.bloodAura > 0 && Math.floor((Game.time - dt) * 0.8) !== Math.floor(Game.time * 0.8)) {
+    let drained = false
+
+    for (const enemy of Game.enemies) {
+      if (Dist(Player.x, Player.y, enemy.x, enemy.y) < 100 + Player.stats.bloodAura * 18) {
+        drained = true
+        DamageEnemy(enemy, Player.stats.damage * 0.42 * Player.stats.bloodAura, 'bloodAura')
+      }
+    }
+
+    if (drained) {
+      Player.hp = Clamp(Player.hp + Player.stats.bloodAura * 2.1, 0, Player.maxHp)
+      SpawnParticle(Player.x, Player.y, '#ff7a97', 8, 90)
+    }
+  }
+
+  if (Player.stats.sanctuaryAura > 0 && Math.floor((Game.time - dt) * 0.65) !== Math.floor(Game.time * 0.65)) {
+    Player.hp = Clamp(Player.hp + 3.2 * Player.stats.sanctuaryAura, 0, Player.maxHp)
+    Player.shield = Clamp(Player.shield + 4.5 * Player.stats.sanctuaryAura, 0, Player.maxShield)
+    SpawnParticle(Player.x, Player.y, '#7cffc7', 8, 90)
   }
 }
 
 function Update(dt) {
-  if (State.mode === "playing") {
-    State.time += dt
-    State.difficulty = 1 + State.time * 0.08
+  const timeScale = Game.slowTimer > 0 ? 0.45 : 1
+  const step = dt * timeScale
 
-    UpdatePlayer(dt)
-    UpdateStars(dt)
-    UpdateObstacles(dt)
-    UpdateShards(dt)
-    UpdateParticles(dt)
+  UpdateStars(step)
+  UpdateFloatersAndParticles(step)
 
-    State.score += dt * 8.5
-
-    if (State.screenShake > 0) {
-      State.screenShake = Math.max(0, State.screenShake - dt * 22)
-    }
-
-    if (State.flash > 0) {
-      State.flash = Math.max(0, State.flash - dt * 2.6)
-    }
-  } else {
-    UpdateStars(dt)
-    UpdateParticles(dt)
-
-    if (State.screenShake > 0) {
-      State.screenShake = Math.max(0, State.screenShake - dt * 18)
-    }
-
-    if (State.flash > 0) {
-      State.flash = Math.max(0, State.flash - dt * 2.2)
-    }
+  if (Game.mode === 'playing') {
+    Game.time += step
+    Game.score += step * 10
+    UpdatePlayer(step)
+    UpdateDronesAndOrbitals(step)
+    UpdateBullets(step)
+    UpdateEnemyBullets(step)
+    UpdateGems(step)
+    UpdateHazards(step)
+    UpdateEnemies(step)
+    UpdateAuras(step)
   }
 
-  ScoreText.textContent = Math.floor(State.score)
-  BestText.textContent = State.best
-  ShardsText.textContent = State.shards
+  Game.slowTimer = Math.max(0, Game.slowTimer - dt)
+  UpdateHud()
+}
 
-  const dashAlpha = Clamp(1 - (Player.dashCooldown / Player.dashCooldownMax), 0, 1)
-  DashFill.style.transform = `scaleX(${dashAlpha})`
-  DashText.textContent = dashAlpha >= 1 ? "Ready" : `${Math.ceil(Player.dashCooldown * 10) / 10}s`
-  DashButtonSmall.textContent = dashAlpha >= 1 ? "READY" : "WAIT"
+function UpdateHud() {
+  HpText.textContent = Math.ceil(Player.hp) + ' / ' + Math.ceil(Player.maxHp)
+  ArmorText.textContent = Math.floor(Player.stats.armor) + ' Armor'
+  HpFill.style.transform = `scaleX(${Clamp(Player.hp / Player.maxHp, 0, 1)})`
+  ShieldFill.style.transform = `scaleX(${Player.maxShield > 0 ? Clamp(Player.shield / Player.maxShield, 0, 1) : 0})`
+  LevelText.textContent = Game.level
+  XpText.textContent = Math.floor(Game.xp) + ' / ' + Game.nextXp
+  XpFill.style.transform = `scaleX(${Clamp(Game.xp / Game.nextXp, 0, 1)})`
+  TimeText.textContent = FormatTime(Game.time)
+  ScoreText.textContent = Math.floor(Game.score)
+  DashText.textContent = Player.dashCd > 0 ? Player.dashCd.toFixed(1) + 's' : 'Ready'
+  KillText.textContent = Game.kills
+  EchoText.textContent = Meta.echoes
+
+  if (!Game.bossSpawned) {
+    GoalText.textContent = 'Survive to 2:00'
+  }
+
+  if (Game.mode !== 'playing') {
+    BossPanel.classList.toggle('hidden', !Game.bossSpawned || Game.win)
+  }
 }
 
 function DrawBackground() {
-  const shakeX = State.screenShake > 0 ? Random(-State.screenShake, State.screenShake) : 0
-  const shakeY = State.screenShake > 0 ? Random(-State.screenShake, State.screenShake) : 0
-
-  Ctx.save()
-  Ctx.translate(shakeX, shakeY)
-
   const gradient = Ctx.createLinearGradient(0, 0, 0, Height)
-  gradient.addColorStop(0, "#111933")
-  gradient.addColorStop(1, "#0b1020")
+  gradient.addColorStop(0, '#15214a')
+  gradient.addColorStop(1, '#070b18')
   Ctx.fillStyle = gradient
-  Ctx.fillRect(-30, -30, Width + 60, Height + 60)
+  Ctx.fillRect(0, 0, Width, Height)
 
-  for (const star of Stars) {
+  for (const star of Game.stars) {
     Ctx.globalAlpha = star.alpha
-    Ctx.fillStyle = "#dbe9ff"
+    Ctx.fillStyle = '#dbe7ff'
     Ctx.beginPath()
     Ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
     Ctx.fill()
   }
 
   Ctx.globalAlpha = 1
-  Ctx.restore()
-}
 
-function DrawGrid() {
-  Ctx.save()
-  Ctx.globalAlpha = 0.05
-  Ctx.strokeStyle = "#cdd8ff"
+  Ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)'
   Ctx.lineWidth = 1
 
-  const spacing = 52
-
-  for (let x = 0; x < Width; x += spacing) {
+  for (let x = 0; x < Width; x += 54) {
     Ctx.beginPath()
     Ctx.moveTo(x, 0)
     Ctx.lineTo(x, Height)
     Ctx.stroke()
   }
 
-  for (let y = 0; y < Height; y += spacing) {
+  for (let y = 0; y < Height; y += 54) {
     Ctx.beginPath()
     Ctx.moveTo(0, y)
     Ctx.lineTo(Width, y)
     Ctx.stroke()
   }
-
-  Ctx.restore()
 }
 
-function DrawObstacles() {
-  for (const obstacle of Obstacles) {
+function DrawHazards() {
+  for (const hazard of Game.hazards) {
+    Ctx.globalAlpha = Clamp(hazard.duration * 1.2, 0, 0.4)
+    Ctx.fillStyle = hazard.color
+    Ctx.beginPath()
+    Ctx.arc(hazard.x, hazard.y, hazard.radius, 0, Math.PI * 2)
+    Ctx.fill()
+  }
+
+  Ctx.globalAlpha = 1
+}
+
+function DrawGems() {
+  for (const gem of Game.gems) {
     Ctx.save()
-    Ctx.translate(obstacle.x + obstacle.w * 0.5, obstacle.y + obstacle.h * 0.5)
-    Ctx.rotate(obstacle.type === "spinner" ? obstacle.rot : obstacle.rot * 0.25)
+    Ctx.translate(gem.x, gem.y)
+    Ctx.rotate(Game.time * 2)
+    Ctx.fillStyle = Colors.xp
+    Ctx.shadowBlur = 18
+    Ctx.shadowColor = 'rgba(124, 255, 194, 0.55)'
+    Ctx.beginPath()
+    Ctx.moveTo(0, -gem.r * 1.35)
+    Ctx.lineTo(gem.r * 0.9, 0)
+    Ctx.lineTo(0, gem.r * 1.35)
+    Ctx.lineTo(-gem.r * 0.9, 0)
+    Ctx.closePath()
+    Ctx.fill()
+    Ctx.restore()
+  }
+}
 
-    const glow = 8 + Math.sin(State.time * 5 + obstacle.glow * 8) * 4
+function DrawBullets() {
+  for (const bullet of Game.bullets) {
+    Ctx.fillStyle = bullet.color
+    Ctx.shadowBlur = 14
+    Ctx.shadowColor = bullet.color
+    Ctx.beginPath()
+    Ctx.arc(bullet.x, bullet.y, bullet.r, 0, Math.PI * 2)
+    Ctx.fill()
+  }
 
-    Ctx.shadowBlur = 24 + glow
-    Ctx.shadowColor = "rgba(255, 97, 125, 0.55)"
-    Ctx.fillStyle = "#ff617d"
-    Ctx.strokeStyle = "rgba(255,255,255,0.22)"
-    Ctx.lineWidth = 2
+  for (const bullet of Game.enemyBullets) {
+    Ctx.fillStyle = bullet.color
+    Ctx.shadowBlur = 12
+    Ctx.shadowColor = bullet.color
+    Ctx.beginPath()
+    Ctx.arc(bullet.x, bullet.y, bullet.r, 0, Math.PI * 2)
+    Ctx.fill()
+  }
 
-    if (obstacle.type === "spinner") {
-      const arm = obstacle.w * 0.46
-      const thick = obstacle.h * 0.9
+  Ctx.shadowBlur = 0
+}
 
+function DrawEnemies() {
+  for (const enemy of Game.enemies) {
+    Ctx.save()
+    Ctx.translate(enemy.x, enemy.y)
+    Ctx.fillStyle = enemy.color
+    Ctx.shadowBlur = enemy.type === 'boss' ? 28 : 16
+    Ctx.shadowColor = enemy.color
+
+    if (enemy.type === 'boss') {
       Ctx.beginPath()
-      Ctx.roundRect(-arm, -thick * 0.5, arm * 2, thick, thick * 0.45)
+      Ctx.arc(0, 0, enemy.r, 0, Math.PI * 2)
       Ctx.fill()
-
-      Ctx.rotate(Math.PI / 2)
+      Ctx.fillStyle = 'rgba(255,255,255,0.2)'
       Ctx.beginPath()
-      Ctx.roundRect(-arm, -thick * 0.5, arm * 2, thick, thick * 0.45)
+      Ctx.arc(-12, -10, 10, 0, Math.PI * 2)
+      Ctx.arc(12, -10, 10, 0, Math.PI * 2)
       Ctx.fill()
     } else {
       Ctx.beginPath()
-      Ctx.roundRect(-obstacle.w * 0.5, -obstacle.h * 0.5, obstacle.w, obstacle.h, 10)
+      Ctx.arc(0, 0, enemy.r, 0, Math.PI * 2)
       Ctx.fill()
     }
 
-    Ctx.stroke()
+    if (enemy.elite && enemy.type !== 'boss') {
+      Ctx.strokeStyle = '#fff4bf'
+      Ctx.lineWidth = 2
+      Ctx.beginPath()
+      Ctx.arc(0, 0, enemy.r + 4, 0, Math.PI * 2)
+      Ctx.stroke()
+    }
+
     Ctx.restore()
   }
-}
 
-function DrawShards() {
-  for (const shard of Shards) {
-    const pulse = 1 + Math.sin(shard.bob) * 0.15
-
-    Ctx.save()
-    Ctx.translate(shard.x, shard.y)
-    Ctx.scale(pulse, pulse)
-    Ctx.rotate(State.time * 1.8)
-
-    Ctx.shadowBlur = 22
-    Ctx.shadowColor = "rgba(255, 215, 106, 0.65)"
-    Ctx.fillStyle = "#ffd76a"
-    Ctx.strokeStyle = "rgba(255,255,255,0.35)"
-    Ctx.lineWidth = 2
-
-    Ctx.beginPath()
-    Ctx.moveTo(0, -shard.radius * 1.35)
-    Ctx.lineTo(shard.radius * 0.9, 0)
-    Ctx.lineTo(0, shard.radius * 1.35)
-    Ctx.lineTo(-shard.radius * 0.9, 0)
-    Ctx.closePath()
-    Ctx.fill()
-    Ctx.stroke()
-    Ctx.restore()
-  }
-}
-
-function DrawParticles() {
-  for (const p of Particles) {
-    Ctx.globalAlpha = Clamp(p.life * 2, 0, 1)
-    Ctx.fillStyle = p.color
-    Ctx.beginPath()
-    Ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-    Ctx.fill()
-  }
-
-  Ctx.globalAlpha = 1
+  Ctx.shadowBlur = 0
 }
 
 function DrawPlayer() {
-  for (let i = 0; i < Player.trail.length; i++) {
-    const t = Player.trail[i]
-    const alpha = Clamp(t.life * 2.5, 0, 1) * 0.35
-
-    Ctx.globalAlpha = alpha
-    Ctx.fillStyle = Player.dashTime > 0 ? "#a46dff" : "#76e4ff"
+  for (const trail of Player.trail) {
+    Ctx.globalAlpha = Clamp(trail.life * 2.6, 0, 0.35)
+    Ctx.fillStyle = Player.dashTime > 0 ? Colors.accent2 : Colors.accent
     Ctx.beginPath()
-    Ctx.arc(t.x, t.y, t.size * (0.55 + i / Player.trail.length * 0.5), 0, Math.PI * 2)
+    Ctx.arc(trail.x, trail.y, Player.r * 0.78, 0, Math.PI * 2)
     Ctx.fill()
   }
 
   Ctx.globalAlpha = 1
 
-  Ctx.save()
-  Ctx.translate(Player.x, Player.y)
+  for (const orbital of Game.orbitals) {
+    Ctx.fillStyle = '#cfe5ff'
+    Ctx.shadowBlur = 18
+    Ctx.shadowColor = '#9e7bff'
+    Ctx.beginPath()
+    Ctx.arc(orbital.x, orbital.y, 8 + Player.stats.orbitalSizePct * 4, 0, Math.PI * 2)
+    Ctx.fill()
+  }
 
-  const angle = Math.atan2(Player.vy, Player.vx || -1) + Math.PI / 2
-  Ctx.rotate(angle)
-
-  Ctx.shadowBlur = Player.invuln > 0 ? 30 : 20
-  Ctx.shadowColor = Player.invuln > 0 ? "rgba(164, 109, 255, 0.7)" : "rgba(118, 228, 255, 0.55)"
-
-  Ctx.fillStyle = "#e8f6ff"
-  Ctx.strokeStyle = "rgba(255,255,255,0.3)"
-  Ctx.lineWidth = 2
-
-  Ctx.beginPath()
-  Ctx.moveTo(0, -24)
-  Ctx.lineTo(15, 18)
-  Ctx.lineTo(0, 10)
-  Ctx.lineTo(-15, 18)
-  Ctx.closePath()
-  Ctx.fill()
-  Ctx.stroke()
-
-  Ctx.fillStyle = Player.invuln > 0 ? "#a46dff" : "#76e4ff"
-  Ctx.beginPath()
-  Ctx.arc(0, 0, 6, 0, Math.PI * 2)
-  Ctx.fill()
-
-  Ctx.restore()
-}
-
-function DrawEdgeGlow() {
-  const grad = Ctx.createLinearGradient(0, 0, Width, Height)
-  grad.addColorStop(0, "rgba(118, 228, 255, 0.04)")
-  grad.addColorStop(1, "rgba(164, 109, 255, 0.03)")
-  Ctx.strokeStyle = grad
-  Ctx.lineWidth = 3
-  Ctx.strokeRect(1.5, 1.5, Width - 3, Height - 3)
-}
-
-function DrawFlash() {
-  if (State.flash <= 0) {
-    return
+  for (const drone of Game.drones) {
+    Ctx.fillStyle = '#d5e5ff'
+    Ctx.shadowBlur = 12
+    Ctx.shadowColor = '#79e7ff'
+    Ctx.fillRect(drone.x - 8, drone.y - 5, 16, 10)
   }
 
   Ctx.save()
-  Ctx.globalAlpha = State.flash
-  Ctx.fillStyle = "#ffffff"
-  Ctx.fillRect(0, 0, Width, Height)
+  Ctx.translate(Player.x, Player.y)
+  const angle = Math.atan2(Player.vy || -1, Player.vx || 0) + Math.PI / 2
+  Ctx.rotate(angle)
+  Ctx.fillStyle = Colors.player
+  Ctx.shadowBlur = Player.invuln > 0 ? 22 : 16
+  Ctx.shadowColor = Player.invuln > 0 ? Colors.accent2 : Colors.accent
+  Ctx.beginPath()
+  Ctx.moveTo(0, -22)
+  Ctx.lineTo(16, 14)
+  Ctx.lineTo(0, 8)
+  Ctx.lineTo(-16, 14)
+  Ctx.closePath()
+  Ctx.fill()
+  Ctx.fillStyle = Player.omenTimer > 0 ? '#ffd76a' : Colors.accent
+  Ctx.beginPath()
+  Ctx.arc(0, 0, 5.5, 0, Math.PI * 2)
+  Ctx.fill()
   Ctx.restore()
+  Ctx.shadowBlur = 0
+}
+
+function DrawParticlesAndFloaters() {
+  for (const particle of Game.particles) {
+    Ctx.globalAlpha = Clamp(particle.life * 2, 0, 1)
+    Ctx.fillStyle = particle.color
+    Ctx.beginPath()
+    Ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+    Ctx.fill()
+  }
+
+  Ctx.globalAlpha = 1
+  Ctx.font = 'bold 14px Inter, system-ui, sans-serif'
+  Ctx.textAlign = 'center'
+
+  for (const floater of Game.floaters) {
+    Ctx.globalAlpha = Clamp(floater.life, 0, 1)
+    Ctx.fillStyle = floater.color
+    Ctx.fillText(floater.text, floater.x, floater.y)
+  }
+
+  Ctx.globalAlpha = 1
 }
 
 function Draw() {
   Ctx.clearRect(0, 0, Width, Height)
   DrawBackground()
-  DrawGrid()
-  DrawObstacles()
-  DrawShards()
-  DrawParticles()
+  DrawHazards()
+  DrawGems()
+  DrawBullets()
+  DrawEnemies()
   DrawPlayer()
-  DrawEdgeGlow()
-  DrawFlash()
+  DrawParticlesAndFloaters()
 }
 
 function Loop(timestamp) {
@@ -1130,159 +2694,48 @@ function Loop(timestamp) {
 
   const dt = Math.min(0.033, (timestamp - LastTime) / 1000)
   LastTime = timestamp
-
   Update(dt)
   Draw()
-
   requestAnimationFrame(Loop)
 }
 
-function SetKey(code, down) {
-  if (code === "KeyA" || code === "ArrowLeft") Input.left = down
-  if (code === "KeyD" || code === "ArrowRight") Input.right = down
-  if (code === "KeyW" || code === "ArrowUp") Input.up = down
-  if (code === "KeyS" || code === "ArrowDown") Input.down = down
+function OnKey(code, down) {
+  if (code === 'KeyA' || code === 'ArrowLeft') Input.left = down
+  if (code === 'KeyD' || code === 'ArrowRight') Input.right = down
+  if (code === 'KeyW' || code === 'ArrowUp') Input.up = down
+  if (code === 'KeyS' || code === 'ArrowDown') Input.down = down
 }
 
-window.addEventListener("keydown", event => {
-  SetKey(event.code, true)
+window.addEventListener('keydown', event => {
+  OnKey(event.code, true)
 
-  if (event.code === "Space" || event.code === "ShiftLeft" || event.code === "ShiftRight") {
+  if (event.code === 'Space' || event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
     event.preventDefault()
     TriggerDash()
   }
 
-  if (event.code === "Enter") {
-    if (State.mode !== "playing") {
-      ResetGame()
-    }
+  if (event.code === 'Enter' && Game.mode !== 'playing' && Game.mode !== 'talent') {
+    ResetRun()
   }
 })
 
-window.addEventListener("keyup", event => {
-  SetKey(event.code, false)
+window.addEventListener('keyup', event => {
+  OnKey(event.code, false)
 })
 
-function UpdatePointerPosition(clientX, clientY) {
-  Input.pointerX = clientX
-  Input.pointerY = clientY
-}
-
-Canvas.addEventListener("mousemove", event => {
-  UpdatePointerPosition(event.clientX, event.clientY)
-  Input.pointerActive = true
-})
-
-Canvas.addEventListener("mouseleave", () => {
-  Input.pointerActive = false
-})
-
-Canvas.addEventListener("mousedown", event => {
-  UpdatePointerPosition(event.clientX, event.clientY)
-
-  if (State.mode === "playing") {
-    TriggerDash()
-  }
-})
-
-function ShowMobileControls() {
-  const isTouch = window.matchMedia("(pointer: coarse)").matches || Width <= 700
-
-  TouchPad.classList.toggle("hidden", !isTouch)
-  DashButton.classList.toggle("hidden", !isTouch)
-}
-
-function HandleTouchStart(event) {
-  for (const touch of event.changedTouches) {
-    const x = touch.clientX
-    const y = touch.clientY
-
-    if (x < Width * 0.5 && !Touch.joystickActive) {
-      Touch.joystickActive = true
-      Touch.pointerId = touch.identifier
-      Touch.centerX = x
-      Touch.centerY = y
-      Touch.x = 0
-      Touch.y = 0
-      Stick.style.left = "50%"
-      Stick.style.top = "50%"
-    } else if (x >= Width * 0.5) {
-      TriggerDash()
-    }
-  }
-}
-
-function HandleTouchMove(event) {
-  for (const touch of event.changedTouches) {
-    if (touch.identifier !== Touch.pointerId) {
-      continue
-    }
-
-    const dx = touch.clientX - Touch.centerX
-    const dy = touch.clientY - Touch.centerY
-    const maxDist = 44
-    const mag = Math.hypot(dx, dy) || 1
-    const clamped = Math.min(maxDist, mag)
-    const nx = dx / mag
-    const ny = dy / mag
-
-    Touch.x = (nx * clamped) / maxDist
-    Touch.y = (ny * clamped) / maxDist
-
-    Stick.style.left = `${50 + Touch.x * 26}%`
-    Stick.style.top = `${50 + Touch.y * 26}%`
-  }
-}
-
-function HandleTouchEnd(event) {
-  for (const touch of event.changedTouches) {
-    if (touch.identifier !== Touch.pointerId) {
-      continue
-    }
-
-    Touch.joystickActive = false
-    Touch.pointerId = null
-    Touch.x = 0
-    Touch.y = 0
-    Stick.style.left = "50%"
-    Stick.style.top = "50%"
-  }
-}
-
-window.addEventListener("touchstart", event => {
-  HandleTouchStart(event)
-}, { passive: true })
-
-window.addEventListener("touchmove", event => {
-  HandleTouchMove(event)
-}, { passive: true })
-
-window.addEventListener("touchend", event => {
-  HandleTouchEnd(event)
-}, { passive: true })
-
-window.addEventListener("touchcancel", event => {
-  HandleTouchEnd(event)
-}, { passive: true })
-
-StartButton.addEventListener("click", ResetGame)
-RestartButton.addEventListener("click", ResetGame)
-DashButton.addEventListener("click", TriggerDash)
-
-function Init() {
+StartButton.addEventListener('click', ResetRun)
+ResetShopButton.addEventListener('click', ResetPrestigeShop)
+window.addEventListener('resize', () => {
   Resize()
-  SpawnStarField()
-  BestText.textContent = State.best
-  ShowMobileControls()
-  requestAnimationFrame(Loop)
-}
-
-window.addEventListener("resize", () => {
-  ShowMobileControls()
-  SpawnStarField()
+  BuildStarfield()
 })
 
-Init()
+Resize()
+BuildStarfield()
+RenderShop()
+RenderOwnedTalents()
+UpdateHud()
+requestAnimationFrame(Loop)
 </script>
 </body>
 </html>
