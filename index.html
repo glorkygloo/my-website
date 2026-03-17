@@ -6,372 +6,241 @@
 <title>solixo.dev</title>
 <style>
   :root {
-    --bg: #f6f7fb;
-    --bg-soft: #ffffff;
-    --text: #111318;
-    --muted: #68707f;
-    --line: rgba(17, 19, 24, 0.08);
-    --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
-    --accent: #111318;
-    --accent-soft: #eceff6;
-    --card-1: #dff4ff;
-    --card-2: #efe4ff;
-    --card-3: #e9ffd9;
-    --card-4: #fff1d9;
-    --radius-lg: 28px;
-    --radius-md: 22px;
-    --radius-sm: 16px;
-    --max-width: 1240px;
+    --bg0: #050814;
+    --bg1: #0b1224;
+    --bg2: #101b36;
+    --panel: rgba(12, 18, 36, 0.78);
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #eef4ff;
+    --muted: #9eaed6;
+    --accent: #81e9ff;
+    --accent2: #a384ff;
+    --orange: #ffb36c;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
   }
 
   * {
     box-sizing: border-box;
   }
 
-  html {
-    scroll-behavior: smooth;
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top, rgba(129, 233, 255, 0.08), transparent 28%),
+      radial-gradient(circle at 80% 20%, rgba(163, 132, 255, 0.08), transparent 22%),
+      linear-gradient(180deg, var(--bg2), var(--bg0));
+    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   body {
-    margin: 0;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background:
-      radial-gradient(circle at top left, rgba(157, 208, 255, 0.28), transparent 28%),
-      radial-gradient(circle at 80% 20%, rgba(210, 176, 255, 0.18), transparent 24%),
-      linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
-    color: var(--text);
+    overflow-x: hidden;
   }
 
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  button,
-  a.button {
-    border: 0;
-    background: var(--accent);
-    color: white;
-    font: inherit;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 14px 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: transform 0.14s ease, opacity 0.14s ease, background 0.14s ease;
-  }
-
-  button:hover,
-  a.button:hover {
-    transform: translateY(-1px);
-  }
-
-  button:active,
-  a.button:active {
-    transform: translateY(1px);
-  }
-
-  .button.secondary {
-    background: white;
-    color: var(--text);
-    border: 1px solid var(--line);
+  canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
   }
 
   .page {
-    width: min(calc(100% - 32px), var(--max-width));
+    position: relative;
+    z-index: 1;
+    width: min(1280px, calc(100% - 40px));
     margin: 0 auto;
-  }
-
-  .nav {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    backdrop-filter: blur(16px);
-    background: rgba(246, 247, 251, 0.72);
-    border-bottom: 1px solid rgba(17, 19, 24, 0.05);
-  }
-
-  .navInner {
-    width: min(calc(100% - 32px), var(--max-width));
-    margin: 0 auto;
-    min-height: 74px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-
-  .brandDot {
-    width: 14px;
-    height: 14px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #7acbff, #b180ff);
-    box-shadow: 0 0 0 8px rgba(122, 203, 255, 0.12);
-  }
-
-  .navLinks {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .navLink {
-    padding: 10px 14px;
-    border-radius: 999px;
-    color: var(--muted);
-    font-weight: 600;
-    transition: background 0.14s ease, color 0.14s ease;
-  }
-
-  .navLink:hover {
-    background: white;
-    color: var(--text);
+    padding: 42px 0 34px;
   }
 
   .hero {
-    padding: 34px 0 20px;
+    margin-bottom: 26px;
   }
 
-  .heroCard {
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(17, 19, 24, 0.06);
-    border-radius: 36px;
-    box-shadow: var(--shadow);
-    padding: clamp(22px, 4vw, 40px);
-    display: grid;
-    grid-template-columns: 1.25fr 0.75fr;
-    gap: 24px;
-    overflow: hidden;
+  .brandWrap {
     position: relative;
+    display: inline-block;
+    line-height: 0.88;
+    letter-spacing: -0.08em;
   }
 
-  .heroCard::before,
-  .heroCard::after {
-    content: "";
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(10px);
-    pointer-events: none;
-  }
-
-  .heroCard::before {
-    width: 260px;
-    height: 260px;
-    right: -40px;
-    top: -70px;
-    background: radial-gradient(circle, rgba(122, 203, 255, 0.26), transparent 65%);
-  }
-
-  .heroCard::after {
-    width: 260px;
-    height: 260px;
-    right: 120px;
-    bottom: -120px;
-    background: radial-gradient(circle, rgba(177, 128, 255, 0.18), transparent 65%);
-  }
-
-  .eyebrow {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--muted);
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-
-  .headline {
+  .brandMain {
     margin: 0;
-    font-size: clamp(48px, 7vw, 88px);
-    line-height: 0.92;
-    letter-spacing: -0.06em;
+    font-size: clamp(72px, 16vw, 220px);
+    font-weight: 900;
+    color: var(--text);
   }
 
-  .headline span {
-    background: linear-gradient(135deg, #111318 0%, #4d5b80 45%, #8b61ff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .brandSub {
+    position: absolute;
+    right: 0;
+    bottom: 6%;
+    font-size: clamp(24px, 4vw, 58px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: var(--orange);
   }
 
-  .subtext {
-    margin: 18px 0 0;
-    max-width: 44ch;
+  .heroText {
+    margin: 16px 0 0;
+    max-width: 46ch;
     color: var(--muted);
-    font-size: 18px;
+    font-size: 17px;
     line-height: 1.6;
-  }
-
-  .heroActions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 26px;
-  }
-
-  .heroAside {
-    display: grid;
-    gap: 14px;
-    align-content: end;
-  }
-
-  .miniCard {
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: 18px;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
-  }
-
-  .miniLabel {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--muted);
-    margin-bottom: 8px;
-    font-weight: 700;
-  }
-
-  .miniValue {
-    font-size: 26px;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    margin-bottom: 6px;
-  }
-
-  .miniText {
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .section {
-    padding: 18px 0 34px;
   }
 
   .sectionHeader {
     display: flex;
+    align-items: end;
     justify-content: space-between;
     gap: 16px;
-    align-items: end;
-    margin-bottom: 18px;
+    margin: 0 0 14px;
   }
 
   .sectionTitle {
     margin: 0;
-    font-size: clamp(28px, 3vw, 42px);
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 900;
     letter-spacing: -0.05em;
   }
 
-  .sectionText {
-    margin: 8px 0 0;
+  .sectionNote {
     color: var(--muted);
-    line-height: 1.6;
-    max-width: 56ch;
+    font-size: 14px;
   }
 
   .gamesGrid {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
   }
 
   .gameCard {
-    grid-column: span 4;
-    min-height: 300px;
-    border-radius: 28px;
-    border: 1px solid rgba(17, 19, 24, 0.06);
+    position: relative;
+    min-height: 340px;
+    padding: 20px;
+    border-radius: 30px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(16, 24, 48, 0.9), rgba(9, 14, 30, 0.88));
     box-shadow: var(--shadow);
-    padding: 22px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.16s ease, box-shadow 0.16s ease;
-  }
-
-  .gameCard:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 26px 50px rgba(15, 23, 42, 0.12);
-  }
-
-  .gameCard.featured {
-    grid-column: span 6;
   }
 
   .gameCard::before {
     content: "";
     position: absolute;
-    inset: auto -10% -40% auto;
-    width: 240px;
-    height: 240px;
+    right: -80px;
+    bottom: -90px;
+    width: 260px;
+    height: 260px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.45);
-    filter: blur(10px);
+    background: radial-gradient(circle, rgba(163, 132, 255, 0.18), transparent 68%);
     pointer-events: none;
   }
 
-  .cardBlue {
-    background: linear-gradient(180deg, #dff4ff 0%, #cceeff 100%);
+  .gameCard.playable {
+    cursor: pointer;
+    transition: transform 0.14s ease, border-color 0.14s ease;
   }
 
-  .cardPurple {
-    background: linear-gradient(180deg, #efe4ff 0%, #e7d7ff 100%);
+  .gameCard.playable:hover {
+    transform: translateY(-3px);
+    border-color: rgba(129, 233, 255, 0.3);
   }
 
-  .cardGreen {
-    background: linear-gradient(180deg, #e9ffd9 0%, #dcf7c4 100%);
+  .thumb {
+    height: 180px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(129, 233, 255, 0.16), transparent 24%),
+      radial-gradient(circle at 70% 45%, rgba(163, 132, 255, 0.18), transparent 22%),
+      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    position: relative;
+    overflow: hidden;
   }
 
-  .cardGold {
-    background: linear-gradient(180deg, #fff1d9 0%, #ffe4b8 100%);
+  .thumb.skyDash::before,
+  .thumb.skyDash::after {
+    content: "";
+    position: absolute;
   }
 
-  .cardBadge {
+  .thumb.skyDash::before {
+    left: 26%;
+    bottom: 18%;
+    width: 68px;
+    height: 92px;
+    background: linear-gradient(180deg, #ffffff, #d7f5ff);
+    clip-path: polygon(50% 0%, 100% 100%, 50% 74%, 0% 100%);
+    transform: rotate(-10deg);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.24));
+  }
+
+  .thumb.skyDash::after {
+    right: 16%;
+    top: 20%;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd76b, #ff875e 75%);
+    box-shadow: 0 0 22px rgba(255, 211, 107, 0.24);
+  }
+
+  .thumb.empty::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.03), transparent),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 14px, transparent 14px 28px);
+  }
+
+  .tag {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(17, 19, 24, 0.06);
     width: fit-content;
-    padding: 9px 12px;
+    padding: 8px 10px;
     border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
     font-size: 12px;
-    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }
 
   .gameName {
-    font-size: clamp(28px, 3.5vw, 44px);
-    line-height: 0.96;
-    letter-spacing: -0.05em;
+    margin: 16px 0 8px;
+    font-size: clamp(32px, 5vw, 46px);
     font-weight: 900;
-    margin: 0 0 10px;
+    letter-spacing: -0.05em;
+    line-height: 0.96;
   }
 
-  .gameDesc {
-    color: rgba(17, 19, 24, 0.72);
-    line-height: 1.6;
-    max-width: 38ch;
+  .gameName span {
+    color: var(--accent);
+  }
+
+  .gameText {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+    max-width: 34ch;
   }
 
   .cardBottom {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .metaRow {
@@ -383,351 +252,202 @@
   .metaTag {
     padding: 8px 10px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(17, 19, 24, 0.06);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
     font-size: 12px;
     font-weight: 700;
-    color: rgba(17, 19, 24, 0.76);
   }
 
-  .routeBox {
-    background: white;
+  .openButton {
+    border: 0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font: inherit;
+    font-weight: 800;
+    color: #061019;
+    background: linear-gradient(135deg, var(--accent), #dffcff);
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+
+  .openButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .openButton:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .soonButton {
+    border-radius: 14px;
+    padding: 12px 16px;
     border: 1px solid var(--line);
-    border-radius: 28px;
-    box-shadow: var(--shadow);
-    padding: 22px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .codeBlock {
-    background: #0f1320;
-    color: #eef3ff;
-    border-radius: 22px;
-    padding: 18px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    line-height: 1.65;
-    overflow: auto;
-    white-space: pre;
-    font-size: 14px;
-  }
-
-  .infoList {
-    display: grid;
-    gap: 12px;
-  }
-
-  .infoItem {
-    background: var(--accent-soft);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 16px;
-  }
-
-  .infoItem strong {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 15px;
-  }
-
-  .footer {
-    padding: 18px 0 40px;
-  }
-
-  .footerCard {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 26px;
-    box-shadow: var(--shadow);
-    padding: 18px 20px;
-  }
-
-  .footerText {
+    background: rgba(255, 255, 255, 0.05);
     color: var(--muted);
-    line-height: 1.6;
+    font-weight: 800;
   }
 
-  .emptyState {
-    opacity: 0.82;
-  }
-
-  @media (max-width: 1024px) {
-    .heroCard,
-    .routeBox {
+  @media (max-width: 900px) {
+    .gamesGrid {
       grid-template-columns: 1fr;
     }
 
-    .gameCard,
-    .gameCard.featured {
-      grid-column: span 6;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .navInner {
-      min-height: 68px;
-    }
-
-    .navLinks {
-      display: none;
-    }
-
-    .hero {
-      padding-top: 18px;
-    }
-
-    .headline {
-      font-size: clamp(42px, 15vw, 72px);
-    }
-
-    .subtext {
-      font-size: 16px;
-    }
-
-    .section {
-      padding-bottom: 28px;
-    }
-
-    .gameCard,
-    .gameCard.featured {
-      grid-column: span 12;
-      min-height: 260px;
-    }
-
-    .sectionHeader,
-    .footerCard {
-      align-items: start;
+    .gameCard {
+      min-height: 300px;
     }
   }
 </style>
 </head>
 <body>
-  <header class="nav">
-    <div class="navInner">
-      <a class="brand" href="#top" aria-label="solixo.dev home">
-        <span class="brandDot"></span>
-        <span>solixo.dev</span>
+<canvas id="bgCanvas"></canvas>
+
+<main class="page">
+  <section class="hero">
+    <div class="brandWrap">
+      <h1 class="brandMain">solixo</h1>
+      <div class="brandSub">.dev</div>
+    </div>
+    <p class="heroText">A home for small browser games and experiments.</p>
+  </section>
+
+  <section>
+    <div class="sectionHeader">
+      <h2 class="sectionTitle">Games</h2>
+      <div class="sectionNote">More can be added later.</div>
+    </div>
+
+    <div class="gamesGrid">
+      <a class="gameCard playable" href="./sky-dash/">
+        <div>
+          <div class="tag">Live</div>
+          <div class="thumb skyDash"></div>
+          <h3 class="gameName">Sky Dash <span>V3</span></h3>
+          <p class="gameText">Fast runs, evolving builds, class paths, and boss clears.</p>
+        </div>
+
+        <div class="cardBottom">
+          <div class="metaRow">
+            <span class="metaTag">Arcade</span>
+            <span class="metaTag">Survival</span>
+          </div>
+          <button class="openButton" type="button">Open</button>
+        </div>
       </a>
 
-      <nav class="navLinks" aria-label="Primary">
-        <a class="navLink" href="#games">Games</a>
-        <a class="navLink" href="#routes">Setup</a>
-        <a class="navLink" href="#about">About</a>
-      </nav>
+      <div class="gameCard">
+        <div>
+          <div class="tag">Coming Soon</div>
+          <div class="thumb empty"></div>
+          <h3 class="gameName">Coming Soon</h3>
+          <p class="gameText">Reserved for the next game in the hub.</p>
+        </div>
+
+        <div class="cardBottom">
+          <div class="metaRow">
+            <span class="metaTag">Next Slot</span>
+          </div>
+          <div class="soonButton">Soon</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
+</main>
 
-  <main class="page" id="top">
-    <section class="hero">
-      <div class="heroCard">
-        <div>
-          <div class="eyebrow">Game hub</div>
-          <h1 class="headline">Play at <span>solixo.dev</span></h1>
-          <p class="subtext">
-            A clean landing hub for your browser games. Put each game in its own folder, link it from here, and expand the site over time without rebuilding everything.
-          </p>
+<script>
+const Canvas = document.getElementById('bgCanvas')
+const Ctx = Canvas.getContext('2d')
+const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1))
+let Width = 0
+let Height = 0
+let LastTime = 0
+const Stars = []
 
-          <div class="heroActions">
-            <a class="button" href="#games">Browse games</a>
-            <a class="button secondary" href="#routes">Folder setup</a>
-          </div>
-        </div>
+function resize() {
+  Width = window.innerWidth
+  Height = window.innerHeight
+  Canvas.width = Math.floor(Width * DPR)
+  Canvas.height = Math.floor(Height * DPR)
+  Canvas.style.width = Width + 'px'
+  Canvas.style.height = Height + 'px'
+  Ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
+  buildStars()
+}
 
-        <aside class="heroAside">
-          <div class="miniCard">
-            <div class="miniLabel">Live route pattern</div>
-            <div class="miniValue">/game-name</div>
-            <div class="miniText">Example: <strong>solixo.dev/sky-dash</strong></div>
-          </div>
+function rand(min, max) {
+  return Math.random() * (max - min) + min
+}
 
-          <div class="miniCard">
-            <div class="miniLabel">Scales cleanly</div>
-            <div class="miniValue">One hub, many games</div>
-            <div class="miniText">Keep the hub as your main homepage and drop each new game into its own folder later.</div>
-          </div>
-        </aside>
-      </div>
-    </section>
+function buildStars() {
+  Stars.length = 0
+  const count = Math.floor((Width * Height) / 9000)
 
-    <section class="section" id="games">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">Games</h2>
-          <p class="sectionText">
-            The first card is set up for Sky Dash. The others are placeholders you can swap out as you add more games.
-          </p>
-        </div>
-      </div>
+  for (let i = 0; i < count; i++) {
+    Stars.push({
+      x: Math.random() * Width,
+      y: Math.random() * Height,
+      size: rand(0.8, 2.4),
+      speed: rand(8, 36),
+      alpha: rand(0.12, 0.7),
+    })
+  }
+}
 
-      <div class="gamesGrid">
-        <a class="gameCard featured cardBlue" href="./sky-dash/">
-          <div>
-            <div class="cardBadge">Featured</div>
-            <h3 class="gameName">Sky Dash</h3>
-            <p class="gameDesc">
-              Fast browser survival with level-ups, talents, boss fights, and long-run progression.
-            </p>
-          </div>
+function drawBackground(dt) {
+  const gradient = Ctx.createLinearGradient(0, 0, 0, Height)
+  gradient.addColorStop(0, '#101b36')
+  gradient.addColorStop(1, '#050814')
+  Ctx.fillStyle = gradient
+  Ctx.fillRect(0, 0, Width, Height)
 
-          <div class="cardBottom">
-            <div class="metaRow">
-              <span class="metaTag">Action</span>
-              <span class="metaTag">Survival</span>
-              <span class="metaTag">Single-player</span>
-            </div>
-            <span class="button secondary">Open game</span>
-          </div>
-        </a>
+  for (const star of Stars) {
+    star.y += star.speed * dt
 
-        <div class="gameCard cardPurple emptyState">
-          <div>
-            <div class="cardBadge">Next slot</div>
-            <h3 class="gameName">Coming Soon</h3>
-            <p class="gameDesc">
-              Use this card for your next game. Change the title, description, colors, and link target.
-            </p>
-          </div>
+    if (star.y > Height + 8) {
+      star.y = -8
+      star.x = Math.random() * Width
+    }
 
-          <div class="cardBottom">
-            <div class="metaRow">
-              <span class="metaTag">Placeholder</span>
-            </div>
-          </div>
-        </div>
+    Ctx.globalAlpha = star.alpha
+    Ctx.fillStyle = '#dbe7ff'
+    Ctx.beginPath()
+    Ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+    Ctx.fill()
+  }
 
-        <div class="gameCard cardGreen emptyState">
-          <div>
-            <div class="cardBadge">Next slot</div>
-            <h3 class="gameName">Coming Soon</h3>
-            <p class="gameDesc">
-              Add another game folder later and point this card to it.
-            </p>
-          </div>
+  Ctx.globalAlpha = 1
+  Ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)'
+  Ctx.lineWidth = 1
 
-          <div class="cardBottom">
-            <div class="metaRow">
-              <span class="metaTag">Placeholder</span>
-            </div>
-          </div>
-        </div>
+  for (let x = 0; x < Width; x += 54) {
+    Ctx.beginPath()
+    Ctx.moveTo(x, 0)
+    Ctx.lineTo(x, Height)
+    Ctx.stroke()
+  }
 
-        <div class="gameCard cardGold emptyState">
-          <div>
-            <div class="cardBadge">Next slot</div>
-            <h3 class="gameName">Coming Soon</h3>
-            <p class="gameDesc">
-              Keep adding cards as the hub grows. Each one can live at its own clean route.
-            </p>
-          </div>
+  for (let y = 0; y < Height; y += 54) {
+    Ctx.beginPath()
+    Ctx.moveTo(0, y)
+    Ctx.lineTo(Width, y)
+    Ctx.stroke()
+  }
+}
 
-          <div class="cardBottom">
-            <div class="metaRow">
-              <span class="metaTag">Placeholder</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+function loop(timestamp) {
+  if (!LastTime) {
+    LastTime = timestamp
+  }
 
-    <section class="section" id="routes">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">Folder setup</h2>
-          <p class="sectionText">
-            This is the easiest way to get routes like <strong>solixo.dev/sky-dash</strong> on GitHub Pages or any static host.
-          </p>
-        </div>
-      </div>
+  const dt = Math.min(0.033, (timestamp - LastTime) / 1000)
+  LastTime = timestamp
+  drawBackground(dt)
+  requestAnimationFrame(loop)
+}
 
-      <div class="routeBox">
-        <div>
-          <div class="miniLabel">Project structure</div>
-          <div class="codeBlock">index.html
-sky-dash/
-  index.html
-future-game/
-  index.html
-another-game/
-  index.html</div>
-        </div>
-
-        <div class="infoList">
-          <div class="infoItem">
-            <strong>Root index.html</strong>
-            This hub page lives at the root of the site, so it becomes <strong>solixo.dev</strong>.
-          </div>
-
-          <div class="infoItem">
-            <strong>Each game gets its own folder</strong>
-            Put your game HTML inside a folder with its own <strong>index.html</strong>. That creates a clean route automatically.
-          </div>
-
-          <div class="infoItem">
-            <strong>Example route</strong>
-            If your game lives in <strong>sky-dash/index.html</strong>, the route becomes <strong>solixo.dev/sky-dash</strong>.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="about">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">How to add more later</h2>
-          <p class="sectionText">
-            You do not need to regenerate the whole site every time. Just keep the hub file, add a new folder, then copy one card and update the link.
-          </p>
-        </div>
-      </div>
-
-      <div class="routeBox">
-        <div class="infoList">
-          <div class="infoItem">
-            <strong>Step 1</strong>
-            Create a new folder for the game, like <strong>boss-runner</strong>.
-          </div>
-
-          <div class="infoItem">
-            <strong>Step 2</strong>
-            Put that game inside <strong>boss-runner/index.html</strong>.
-          </div>
-
-          <div class="infoItem">
-            <strong>Step 3</strong>
-            Duplicate one of the game cards in the hub and change the link to <strong>./boss-runner/</strong>.
-          </div>
-        </div>
-
-        <div>
-          <div class="miniLabel">Example card link</div>
-          <div class="codeBlock">&lt;a class="gameCard cardBlue" href="./boss-runner/"&gt;
-  ...
-&lt;/a&gt;</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="footer">
-      <div class="footerCard">
-        <div>
-          <div class="brand">
-            <span class="brandDot"></span>
-            <span>solixo.dev</span>
-          </div>
-          <div class="footerText">
-            A simple browser-game home page with clean routes and room to grow.
-          </div>
-        </div>
-
-        <a class="button" href="#games">Back to games</a>
-      </div>
-    </section>
-  </main>
+window.addEventListener('resize', resize)
+resize()
+requestAnimationFrame(loop)
+</script>
 </body>
 </html>
