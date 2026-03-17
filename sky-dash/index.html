@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sky Dash V2</title>
+<title>Sky Dash</title>
 <style>
   :root {
     --bg0: #070b18;
@@ -434,6 +434,380 @@
       grid-template-columns: 1fr 1fr;
     }
   }
+
+
+  body.menu-open .topbar,
+  body.menu-open .listPanel {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  .topbar,
+  .listPanel {
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  }
+
+  #menuOverlay {
+    background: rgba(2, 6, 16, 0.62);
+    backdrop-filter: blur(16px);
+    pointer-events: auto;
+  }
+
+  #menuOverlay.hidden {
+    display: none !important;
+  }
+
+  .menuShell {
+    pointer-events: auto;
+    width: min(1220px, 100%);
+    padding: 28px;
+    display: grid;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menuShell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at top left, rgba(121, 231, 255, 0.12), transparent 32%),
+      radial-gradient(circle at right center, rgba(158, 123, 255, 0.12), transparent 28%);
+    pointer-events: none;
+  }
+
+  .menuHeader,
+  .menuPage {
+    position: relative;
+    z-index: 1;
+  }
+
+  .menuHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .menuBrand {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 10px;
+  }
+
+  .menuUtility {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .menuTabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .menuTab,
+  .iconButton {
+    min-width: 84px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    border: 1px solid var(--line);
+  }
+
+  .menuTab.active,
+  .iconButton.active {
+    background: rgba(121, 231, 255, 0.16);
+    border-color: rgba(121, 231, 255, 0.34);
+  }
+
+  .iconButton {
+    min-width: 52px;
+    padding-inline: 0;
+    font-size: 18px;
+  }
+
+  .menuRunLayout,
+  .hangarLayout,
+  .settingsLayout {
+    display: grid;
+    gap: 18px;
+  }
+
+  .menuRunLayout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  }
+
+  .hangarLayout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .settingsLayout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menuMainCol,
+  .menuSideCol {
+    display: grid;
+    gap: 18px;
+  }
+
+  .infoStrip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .infoChip,
+  .detailPanel,
+  .classCard {
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .infoChip {
+    padding: 14px 16px;
+  }
+
+  .chipValue {
+    font-size: 20px;
+    font-weight: 900;
+    margin-top: 5px;
+  }
+
+  .rowBlock {
+    display: grid;
+    gap: 10px;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .sectionText,
+  .detailText,
+  .menuCaption {
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .classGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .classCard {
+    padding: 16px;
+    text-align: left;
+    display: grid;
+    gap: 10px;
+    transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  }
+
+  .classCard:hover {
+    transform: translateY(-2px);
+    border-color: rgba(121, 231, 255, 0.36);
+  }
+
+  .classCard.selected {
+    background: rgba(121, 231, 255, 0.1);
+    border-color: rgba(121, 231, 255, 0.5);
+    box-shadow: inset 0 0 0 1px rgba(121, 231, 255, 0.12);
+  }
+
+  .classHead {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .className {
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .classRole {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .classDesc {
+    color: var(--muted);
+    line-height: 1.5;
+    min-height: 90px;
+  }
+
+  .tagRow,
+  .detailTags,
+  .settingsActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tagRow span,
+  .detailTags span {
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+  }
+
+  .menuActions {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .detailPanel {
+    padding: 18px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .detailTitle {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .menuPage {
+    display: none;
+  }
+
+  .menuPage.active {
+    display: block;
+  }
+
+  .controlsPrompt {
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 20;
+  }
+
+  .controlsPrompt.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  .controlsCard {
+    padding: 18px 22px;
+    display: grid;
+    gap: 12px;
+    background: rgba(5, 9, 20, 0.9);
+  }
+
+  .controlsLayout {
+    display: flex;
+    gap: 26px;
+    align-items: end;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .controlsGroup {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+  }
+
+  .keyCluster,
+  .moveCluster {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+  }
+
+  .moveCluster {
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(2, 52px);
+    grid-template-areas:
+      '. w .'
+      'a s d';
+  }
+
+  .keycap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    font-weight: 900;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .keycap.w { grid-area: w; }
+  .keycap.a { grid-area: a; }
+  .keycap.s { grid-area: s; }
+  .keycap.d { grid-area: d; }
+
+  .keycap.action {
+    width: 92px;
+  }
+
+  .controlsLabel {
+    color: var(--text);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1180px) {
+    .classGrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 1060px) {
+    .menuRunLayout,
+    .hangarLayout,
+    .settingsLayout {
+      grid-template-columns: 1fr;
+    }
+
+    .infoStrip {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .classGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .controlsLayout {
+      gap: 16px;
+    }
+
+    .controlsCard {
+      padding: 14px 16px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -486,8 +860,8 @@
             <div class="value" id="killText">0</div>
           </div>
           <div class="pill">
-            <div class="tiny">Echoes</div>
-            <div class="value" id="echoText">0</div>
+            <div class="tiny">Frame</div>
+            <div class="value" id="classText">-</div>
           </div>
         </div>
       </div>
@@ -525,34 +899,126 @@
     </div>
 
     <div class="centerOverlay" id="menuOverlay">
-      <div class="panel menuCard">
-        <div>
-          <div class="tiny">Single-file website game</div>
-          <h1 class="menuTitle">Sky Dash <span>V2</span></h1>
-          <p class="menuText">
-            This version turns the old dodge game into a full survivor run. You level up, draft talents, evolve them into stronger forms, fight a boss at the end, and earn Echoes for deep runs. Echoes buy permanent upgrades for future attempts.
-          </p>
-          <p class="menuText">
-            The talent pool has <strong>80 cards</strong>. Some synergize, some lock out others, and several evolve when you hit the right build path.
-          </p>
-          <div class="actions">
-            <button class="primary" id="startButton">Start Run</button>
-            <button class="secondary" id="resetShopButton">Reset Prestige Shop</button>
+      <div class="panel menuShell">
+        <div class="menuHeader">
+          <div>
+            <div class="menuBrand">solixo.dev</div>
+            <h1 class="menuTitle">Sky Dash</h1>
+            <p class="menuText">
+              Cut lanes through hostile airspace. Pick a frame, draft through 100 talents, branch your class mid-run, and push for a clean boss clear.
+            </p>
           </div>
-          <div class="footerTips" id="summaryText">
-            Survive until the final boss arrives at 2:00. Beat it to clear the run. You only gain Echoes from important milestones like major level marks and boss clears.
+
+          <div class="menuUtility">
+            <div class="menuTabs">
+              <button class="menuTab active" data-page="run">Run</button>
+              <button class="menuTab" data-page="hangar">Hangar</button>
+            </div>
+            <button class="iconButton" id="settingsButton" aria-label="Settings">⚙</button>
           </div>
         </div>
 
-        <div>
-          <div class="row">
-            <div>
-              <div class="tiny">Prestige Currency</div>
-              <div class="big" id="menuEchoText">0 Echoes</div>
+        <div class="menuPage active" data-page="run">
+          <div class="menuRunLayout">
+            <div class="menuMainCol">
+              <div class="infoStrip">
+                <div class="infoChip">
+                  <div class="tiny">Selected Frame</div>
+                  <div class="chipValue" id="selectedClassName">Strider</div>
+                </div>
+                <div class="infoChip">
+                  <div class="tiny">Evolution Line</div>
+                  <div class="chipValue" id="selectedClassLine">Branches at Level 5</div>
+                </div>
+                <div class="infoChip">
+                  <div class="tiny">Draft Pool</div>
+                  <div class="chipValue" id="talentPoolText">100 Talents</div>
+                </div>
+              </div>
+
+              <div class="rowBlock">
+                <div class="sectionTitle">Frames</div>
+                <div class="sectionText">Each frame adds its own pulls into the normal draft. Hit a branch talent, then push deeper for the second evolution.</div>
+                <div class="classGrid" id="classGrid"></div>
+              </div>
+
+              <div class="menuActions">
+                <button class="primary" id="startButton">Start Run</button>
+                <div class="menuCaption" id="summaryText">Pick a frame and launch.</div>
+              </div>
             </div>
-            <div class="tiny">Permanent Upgrades</div>
+
+            <div class="menuSideCol">
+              <div class="detailPanel">
+                <div class="tiny">Frame Notes</div>
+                <div class="detailTitle" id="classDetailTitle">Strider</div>
+                <div class="detailText" id="classDetailText"></div>
+                <div class="detailTags" id="classDetailTags"></div>
+              </div>
+
+              <div class="detailPanel">
+                <div class="tiny">Profile</div>
+                <div class="detailText" id="metaStatsText"></div>
+              </div>
+            </div>
           </div>
-          <div class="shopGrid" id="shopGrid"></div>
+        </div>
+
+        <div class="menuPage" data-page="hangar">
+          <div class="hangarLayout">
+            <div class="detailPanel">
+              <div class="tiny">Sky Marks</div>
+              <div class="detailTitle" id="menuEchoText">0 Sky Marks</div>
+              <div class="detailText">Permanent upgrades apply to every run on this browser.</div>
+            </div>
+            <div class="shopGrid" id="shopGrid"></div>
+          </div>
+        </div>
+
+        <div class="menuPage" data-page="settings">
+          <div class="settingsLayout">
+            <div class="detailPanel">
+              <div class="tiny">Save Data</div>
+              <div class="detailTitle">Local Save</div>
+              <div class="detailText">Progress saves in this browser on this device. Clearing it removes your Sky Marks, hangar upgrades, best score, total runs, and selected frame here.</div>
+              <div class="settingsActions">
+                <button class="secondary" id="resetShopButton">Reset Hangar</button>
+                <button class="danger" id="wipeSaveButton">Clear Save Data</button>
+              </div>
+            </div>
+
+            <div class="detailPanel">
+              <div class="tiny">Menu</div>
+              <div class="detailTitle">Settings</div>
+              <div class="detailText">Use the gear to get back here any time the menu is open.</div>
+              <div class="settingsActions">
+                <button class="primary" id="backToRunButton">Back to Run</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controlsPrompt hidden" id="controlsPrompt">
+      <div class="controlsCard panel">
+        <div class="controlsLayout">
+          <div class="controlsGroup">
+            <div class="keyCluster">
+              <div class="keycap action">Ctrl</div>
+            </div>
+            <div class="controlsLabel">Action</div>
+          </div>
+
+          <div class="controlsGroup">
+            <div class="moveCluster">
+              <div class="keycap w">W</div>
+              <div class="keycap a">A</div>
+              <div class="keycap s">S</div>
+              <div class="keycap d">D</div>
+            </div>
+            <div class="controlsLabel">Move</div>
+          </div>
         </div>
       </div>
     </div>
@@ -590,7 +1056,7 @@ const TimeText = document.getElementById('timeText')
 const ScoreText = document.getElementById('scoreText')
 const DashText = document.getElementById('dashText')
 const KillText = document.getElementById('killText')
-const EchoText = document.getElementById('echoText')
+const ClassText = document.getElementById('classText')
 const GoalText = document.getElementById('goalText')
 const RunTip = document.getElementById('runTip')
 const BossPanel = document.getElementById('bossPanel')
@@ -603,16 +1069,31 @@ const TalentCountText = document.getElementById('talentCountText')
 const MenuOverlay = document.getElementById('menuOverlay')
 const StartButton = document.getElementById('startButton')
 const ResetShopButton = document.getElementById('resetShopButton')
+const WipeSaveButton = document.getElementById('wipeSaveButton')
+const BackToRunButton = document.getElementById('backToRunButton')
+const SettingsButton = document.getElementById('settingsButton')
+const MenuTabs = Array.from(document.querySelectorAll('.menuTab'))
+const MenuPages = Array.from(document.querySelectorAll('.menuPage'))
 const SummaryText = document.getElementById('summaryText')
 const MenuEchoText = document.getElementById('menuEchoText')
 const ShopGrid = document.getElementById('shopGrid')
+const ClassGrid = document.getElementById('classGrid')
+const SelectedClassName = document.getElementById('selectedClassName')
+const SelectedClassLine = document.getElementById('selectedClassLine')
+const ClassDetailTitle = document.getElementById('classDetailTitle')
+const ClassDetailText = document.getElementById('classDetailText')
+const ClassDetailTags = document.getElementById('classDetailTags')
+const MetaStatsText = document.getElementById('metaStatsText')
+const TalentPoolText = document.getElementById('talentPoolText')
+const ControlsPrompt = document.getElementById('controlsPrompt')
 
 const TalentOverlay = document.getElementById('talentOverlay')
 const TalentGrid = document.getElementById('talentGrid')
 const TalentLevelText = document.getElementById('talentLevelText')
 
 const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1))
-const SAVE_KEY = 'skyDashV2Meta'
+const SAVE_KEY = 'skyDashV3Meta'
+const LEGACY_SAVE_KEYS = ['skyDashV2Meta']
 
 let Width = 0
 let Height = 0
@@ -647,9 +1128,91 @@ const ShopDefs = [
   { id: 'aegis', name: 'Aegis', desc: '+1 armor each rank.', baseCost: 8, step: 8, max: 6 },
   { id: 'fortune', name: 'Fortune', desc: '+8% luck each rank.', baseCost: 10, step: 9, max: 6 },
   { id: 'reserve', name: 'Reserve', desc: '+10 starting shield each rank.', baseCost: 11, step: 9, max: 6 },
+
 ]
 
+const ClassDefs = [
+  {
+    id: 'strider',
+    name: 'Strider',
+    role: 'Skirmisher',
+    desc: 'Fast flight frame built around movement, dash uptime, and aggressive angle changes. It snowballs when you stay in motion.',
+    tags: ['Fast', 'Dash', 'Split Fire'],
+    tip: 'Stay moving. Strider grows sharper when you keep changing lines and chaining dashes.',
+    startText: 'Strider gets on the board quickly and branches into either evasive burst or relentless split-fire pressure.',
+    lineText: 'Rift Runner or Afterimage Ace at Level 5+',
+    effects: { speedPct: 0.14, dashCdPct: -0.18, dashPowerPct: 0.12, fireRatePct: 0.08, damagePct: -0.05 },
+    branches: [
+      { talentId: 'riftRunner', stage1Name: 'Rift Runner', stage2Name: 'Void Skater', requiresId: 'slipRotor', requiresCount: 2, stage2Level: 12, stage2Effects: { speedPct: 0.18, dashPowerPct: 0.2, dashTrail: 1 } },
+      { talentId: 'afterimageAce', stage1Name: 'Afterimage Ace', stage2Name: 'Sky Phantom', requiresId: 'splitstream', requiresCount: 2, stage2Level: 12, stage2Effects: { fireRatePct: 0.22, crit: 0.08, dodgeChance: 0.06, onDashShots: 4 } },
+    ],
+  },
+  {
+    id: 'marksman',
+    name: 'Marksman',
+    role: 'Precision',
+    desc: 'Long-range frame that rewards clean lines, patient aim, and heavy burst windows. Best when you keep threats in front of you.',
+    tags: ['Crit', 'Range', 'Boss Burn'],
+    tip: 'Marksman wants space. Keep range, line up angles, and cash in on crit and boss damage.',
+    startText: 'Marksman leans into sharp crit scaling and turns a clean build into either a surgical killer or a slow heavy battery.',
+    lineText: 'Deadeye Protocol or Siege Pattern at Level 5+',
+    effects: { rangePct: 0.22, bulletSpeedPct: 0.16, crit: 0.07, damagePct: 0.1, speedPct: -0.06 },
+    branches: [
+      { talentId: 'deadeyeProtocol', stage1Name: 'Deadeye Protocol', stage2Name: 'Eagle Vector', requiresId: 'sightlineChamber', requiresCount: 2, stage2Level: 12, stage2Effects: { crit: 0.1, critMult: 0.25, damagePct: 0.16 } },
+      { talentId: 'siegePattern', stage1Name: 'Siege Pattern', stage2Name: 'War Battery', requiresId: 'payloadRails', requiresCount: 2, stage2Level: 12, stage2Effects: { damagePct: 0.26, rangePct: 0.1, pierce: 1 } },
+    ],
+  },
+  {
+    id: 'smasher',
+    name: 'Smasher',
+    role: 'Impact',
+    desc: 'Heavy frame with no primary fire. Your damage comes from boosting through targets and crashing the lane open with your hull.',
+    tags: ['Tank', 'Ram', 'No Gun'],
+    tip: 'Smasher wins by timing boosts into crowds. Hit hard, punch through, and reset for the next angle.',
+    startText: 'Smasher drops the gun entirely and trades it for brutal body damage. Its class pulls steer your run into heavy impact branches.',
+    lineText: 'Juggernaut Frame or Meteor Driver at Level 5+',
+    effects: { maxHp: 48, armor: 2, speedPct: -0.12, dashPowerPct: 0.22, dashCdPct: -0.55, dashInvuln: 0.06, disablePrimary: 1, ramDamage: 1.2, dashShield: 8 },
+    branches: [
+      { talentId: 'juggernautFrame', stage1Name: 'Juggernaut Frame', stage2Name: 'Cataclysm Unit', requiresId: 'impactHull', requiresCount: 2, stage2Level: 12, stage2Effects: { maxHp: 24, armor: 2, ramDamage: 0.5, impactShield: 1 } },
+      { talentId: 'meteorDriver', stage1Name: 'Meteor Driver', stage2Name: 'Worldbreaker Unit', requiresId: 'shockPistons', requiresCount: 2, stage2Level: 12, stage2Effects: { dashPowerPct: 0.18, dashCdPct: -0.1, ramDamage: 0.7, contactNova: 1 } },
+    ],
+  },
+  {
+    id: 'tempest',
+    name: 'Tempest',
+    role: 'Elemental',
+    desc: 'Storm-charged frame that spreads status, chain damage, and control effects. It ramps fast once the field starts reacting.',
+    tags: ['Shock', 'Freeze', 'Status'],
+    tip: 'Tempest wants uptime on elements. Spread status early and let chain hits start doing the heavy lifting.',
+    startText: 'Tempest folds elemental class pulls into the normal draft, then branches into storm pressure or freeze control.',
+    lineText: 'Storm Herald or White Gale at Level 5+',
+    effects: { shockChance: 0.1, burnChance: 0.08, chillChance: 0.08, chainChance: 0.05, damagePct: -0.04 },
+    branches: [
+      { talentId: 'stormHerald', stage1Name: 'Storm Herald', stage2Name: 'Tempest Crown', requiresId: 'stormCells', requiresCount: 2, stage2Level: 12, stage2Effects: { chainCount: 1, chainDamagePct: 0.24, storm: 1, shockChance: 0.14 } },
+      { talentId: 'whiteGale', stage1Name: 'White Gale', stage2Name: 'Zero Front', requiresId: 'cryoFuel', requiresCount: 2, stage2Level: 12, stage2Effects: { chillChance: 0.14, freezeChance: 0.08, storm: 1, bossDamagePct: 0.16, rangePct: 0.08 } },
+    ],
+  },
+  {
+    id: 'bastion',
+    name: 'Bastion',
+    role: 'Defense',
+    desc: 'Shield-first frame that layers drones, orbitals, and stable control tools. It turns space into a safe working zone.',
+    tags: ['Shield', 'Control', 'Orbitals'],
+    tip: 'Bastion thrives when you hold a safe pocket and let your orbitals and drones keep the lane trimmed.',
+    startText: 'Bastion starts sturdier than the rest and turns its class pool into either a full shield wall or a hovering defense net.',
+    lineText: 'Bulwark Prime or Sentinel Net at Level 5+',
+    effects: { shieldMax: 24, shieldRegen: 0.2, armor: 1, speedPct: -0.08, orbitals: 1 },
+    branches: [
+      { talentId: 'bulwarkPrime', stage1Name: 'Bulwark Prime', stage2Name: 'Citadel Core', requiresId: 'aegisLoom', requiresCount: 2, stage2Level: 12, stage2Effects: { shieldMax: 30, shieldRegen: 0.26, armor: 2, sanctuaryAura: 1 } },
+      { talentId: 'sentinelNet', stage1Name: 'Sentinel Net', stage2Name: 'Overwatch Grid', requiresId: 'commandHalo', requiresCount: 1, stage2Level: 12, stage2Effects: { drones: 1, orbitals: 1, droneDamagePct: 0.28, orbitalDamagePct: 0.24 } },
+    ],
+  },
+]
+
+const ClassById = Object.fromEntries(ClassDefs.map(classDef => [classDef.id, classDef]))
+
 const TalentDefs = [
+
   { id: 'keenEdge', name: 'Keen Edge', desc: 'Bullets hit harder.', rarity: 'common', max: 3, effects: { damagePct: 0.12 } },
   { id: 'rapidCycle', name: 'Rapid Cycle', desc: 'Fire faster.', rarity: 'common', max: 3, effects: { fireRatePct: 0.15 } },
   { id: 'hollowPoint', name: 'Hollow Point', desc: 'Raise crit chance.', rarity: 'common', max: 3, effects: { crit: 0.05 } },
@@ -699,7 +1262,7 @@ const TalentDefs = [
   { id: 'omenGlass', name: 'Omen Glass', desc: 'See danger and hit harder after near misses.', rarity: 'rare', max: 1, effects: { omen: 1 } },
   { id: 'hunterMap', name: 'Hunter Map', desc: 'Elites appear sooner but pay better.', rarity: 'rare', max: 1, effects: { eliteRate: 0.3, scoreBonus: 0.12 } },
   { id: 'temporalPocket', name: 'Temporal Pocket', desc: 'Shortly slow time after level-up.', rarity: 'uncommon', max: 1, effects: { timeSlowLevel: 1 } },
-  { id: 'echoPrimer', name: 'Echo Primer', desc: 'Important milestones grant more Echoes.', rarity: 'rare', max: 1, effects: { echoBonus: 0.25 } },
+  { id: 'echoPrimer', name: 'Mark Primer', desc: 'Important milestones grant more Sky Marks.', rarity: 'rare', max: 1, effects: { echoBonus: 0.25 } },
   { id: 'orbitSeed', name: 'Orbit Seed', desc: 'Gain an orbiting blade.', rarity: 'uncommon', max: 3, effects: { orbitals: 1 } },
   { id: 'orbitForge', name: 'Orbit Forge', desc: 'Orbitals hit harder and wider.', rarity: 'uncommon', max: 2, effects: { orbitalDamagePct: 0.2, orbitalSizePct: 0.16 } },
   { id: 'droneBuddy', name: 'Drone Buddy', desc: 'Summon a helper drone.', rarity: 'uncommon', max: 2, effects: { drones: 1 } },
@@ -730,9 +1293,39 @@ const TalentDefs = [
   { id: 'singularityHeart', name: 'Singularity Heart', desc: 'Gravity collapses inward around you.', rarity: 'evolved', max: 1, effects: { well: 2, damagePct: 0.16, cosmology: 1 }, requires: [{ id: 'gravityWell', count: 1 }, { id: 'cosmology', count: 1 }] },
   { id: 'sovereignDrone', name: 'Sovereign Drone', desc: 'Your helpers become a coordinated wing.', rarity: 'evolved', max: 1, effects: { drones: 1, droneDamagePct: 0.38, droneFireRatePct: 0.18 }, requires: [{ id: 'droneBuddy', count: 1 }, { id: 'sniperDrone', count: 1 }, { id: 'orbitForge', count: 1 }] },
   { id: 'crimsonCathedral', name: 'Crimson Cathedral', desc: 'Blood arts bloom into a lethal sanctuary.', rarity: 'evolved', max: 1, effects: { bloodAura: 1, lifesteal: 0.03, damagePct: 0.16, sanctuaryAura: 1 }, requires: [{ id: 'bloodDrinker', count: 1 }, { id: 'bloodTotem', count: 1 }, { id: 'bloodPrice', count: 1 }] },
+  { id: 'impactHull', name: 'Impact Hull', desc: 'Reinforced plating turns your frame into a weapon. Gain health, armor, and stronger rams.', classId: 'smasher', rarity: 'uncommon', max: 2, effects: { maxHp: 18, armor: 1, ramDamage: 0.25 } },
+  { id: 'shockPistons', name: 'Shock Pistons', desc: 'Boosting resets faster and hits harder.', classId: 'smasher', rarity: 'uncommon', max: 2, effects: { dashCdPct: -0.08, dashPowerPct: 0.14, ramDamage: 0.2 } },
+  { id: 'juggernautFrame', name: 'Juggernaut Frame', desc: 'Commit to the heavy line. Ramming grants guard and leaves a crushing wake.', classId: 'smasher', rarity: 'evolved', max: 1, effects: { maxHp: 20, armor: 2, ramDamage: 0.45, impactShield: 1, impactWave: 1 }, requires: [{ id: 'impactHull', count: 1 }], conflicts: ['meteorDriver'] },
+  { id: 'meteorDriver', name: 'Meteor Driver', desc: 'Turn every boost into a wrecking pass built for cracking packs open.', classId: 'smasher', rarity: 'evolved', max: 1, effects: { dashPowerPct: 0.24, dashCdPct: -0.12, ramDamage: 0.5, contactNova: 1 }, requires: [{ id: 'shockPistons', count: 1 }], conflicts: ['juggernautFrame'] },
+  { id: 'slipRotor', name: 'Slip Rotor', desc: 'Your frame holds speed through turns and resets boost faster.', classId: 'strider', rarity: 'uncommon', max: 2, effects: { speedPct: 0.12, dashCdPct: -0.06, dashPowerPct: 0.12 } },
+  { id: 'splitstream', name: 'Splitstream', desc: 'Your fire pattern opens wider and cycles faster.', classId: 'strider', rarity: 'uncommon', max: 2, effects: { fireRatePct: 0.1, projectiles: 1, spread: 0.05 } },
+  { id: 'riftRunner', name: 'Rift Runner', desc: 'Branch into a sharper evasive line built around boost pressure and angle cuts.', classId: 'strider', rarity: 'evolved', max: 1, effects: { speedPct: 0.16, dashCdPct: -0.14, dashInvuln: 0.1, homing: 0.18 }, requires: [{ id: 'slipRotor', count: 1 }], conflicts: ['afterimageAce'] },
+  { id: 'afterimageAce', name: 'Afterimage Ace', desc: 'Branch into a blur-heavy line that converts movement into burst fire.', classId: 'strider', rarity: 'evolved', max: 1, effects: { fireRatePct: 0.18, dodgeChance: 0.08, onDashShots: 6 }, requires: [{ id: 'splitstream', count: 1 }], conflicts: ['riftRunner'] },
+  { id: 'sightlineChamber', name: 'Sightline Chamber', desc: 'Precision housing sharpens your range, crit rate, and projectile travel.', classId: 'marksman', rarity: 'uncommon', max: 2, effects: { rangePct: 0.16, crit: 0.06, bulletSpeedPct: 0.1 } },
+  { id: 'payloadRails', name: 'Payload Rails', desc: 'Heavier shots pierce cleaner and slam harder.', classId: 'marksman', rarity: 'uncommon', max: 2, effects: { damagePct: 0.14, pierce: 1, knockback: 0.12 } },
+  { id: 'deadeyeProtocol', name: 'Deadeye Protocol', desc: 'Branch into patient kill pressure with higher crit and boss damage.', classId: 'marksman', rarity: 'evolved', max: 1, effects: { crit: 0.12, bossDamagePct: 0.18, patient: 1 }, requires: [{ id: 'sightlineChamber', count: 1 }], conflicts: ['siegePattern'] },
+  { id: 'siegePattern', name: 'Siege Pattern', desc: 'Branch into heavy battery fire that favors slower, harder lanes.', classId: 'marksman', rarity: 'evolved', max: 1, effects: { damagePct: 0.22, bulletSizePct: 0.18, projectiles: 1, spread: 0.03 }, requires: [{ id: 'payloadRails', count: 1 }], conflicts: ['deadeyeProtocol'] },
+  { id: 'stormCells', name: 'Storm Cells', desc: 'Batteries hum with live current and raise your shock chain setup.', classId: 'tempest', rarity: 'uncommon', max: 2, effects: { shockChance: 0.16, chainChance: 0.08, burnChance: 0.08 } },
+  { id: 'cryoFuel', name: 'Cryo Fuel', desc: 'Cold-loaded rounds deepen chill and raise your freeze ceiling.', classId: 'tempest', rarity: 'uncommon', max: 2, effects: { chillChance: 0.16, freezeChance: 0.04, bulletSpeedPct: 0.12 } },
+  { id: 'stormHerald', name: 'Storm Herald', desc: 'Branch into a pressure line that keeps lightning rolling across the field.', classId: 'tempest', rarity: 'evolved', max: 1, effects: { chainCount: 1, storm: 1, shockChance: 0.14, chainDamagePct: 0.16 }, requires: [{ id: 'stormCells', count: 1 }], conflicts: ['whiteGale'] },
+  { id: 'whiteGale', name: 'White Gale', desc: 'Branch into control-heavy freeze pressure with cleaner boss burn.', classId: 'tempest', rarity: 'evolved', max: 1, effects: { chillChance: 0.16, freezeChance: 0.08, storm: 1, bossDamagePct: 0.1 }, requires: [{ id: 'cryoFuel', count: 1 }], conflicts: ['stormHerald'] },
+  { id: 'aegisLoom', name: 'Aegis Loom', desc: 'More shield, steadier shield recovery, and thicker plating.', classId: 'bastion', rarity: 'uncommon', max: 2, effects: { shieldMax: 22, shieldRegen: 0.16, armor: 1 } },
+  { id: 'commandHalo', name: 'Command Halo', desc: 'Add a support wing and thicken the orbital net around you.', classId: 'bastion', rarity: 'uncommon', max: 1, effects: { drones: 1, orbitals: 1, orbitalDamagePct: 0.12, droneFireRatePct: 0.08 } },
+  { id: 'bulwarkPrime', name: 'Bulwark Prime', desc: 'Branch into the shield wall line and grind the field down from safety.', classId: 'bastion', rarity: 'evolved', max: 1, effects: { shieldMax: 28, shieldRegen: 0.24, armor: 2, bulwark: 1 }, requires: [{ id: 'aegisLoom', count: 1 }], conflicts: ['sentinelNet'] },
+  { id: 'sentinelNet', name: 'Sentinel Net', desc: 'Branch into a layered wing of drones and orbitals that keeps the lane trimmed.', classId: 'bastion', rarity: 'evolved', max: 1, effects: { drones: 1, orbitals: 1, droneDamagePct: 0.18, orbitalDamagePct: 0.18 }, requires: [{ id: 'commandHalo', count: 1 }], conflicts: ['bulwarkPrime'] },
 ]
 
 const TalentById = Object.fromEntries(TalentDefs.map(t => [t.id, t]))
+
+const RestrictedTalentIdsByClass = {
+  smasher: new Set([
+    'keenEdge', 'rapidCycle', 'hollowPoint', 'longBarrel', 'scatterLens', 'heavySlug', 'twinFang', 'overclockBolt', 'seekerThread',
+    'sparkRounds', 'staticNet', 'emberCore', 'frostTip', 'venomTouch', 'sunderingLight', 'bulletTempest', 'thunderCrown', 'whiteFurnace',
+    'absoluteZero', 'droneBuddy', 'sniperDrone', 'orbitSeed', 'orbitForge', 'stormCaller', 'sightlineChamber', 'payloadRails', 'splitstream',
+    'deadeyeProtocol', 'siegePattern', 'stormCells', 'cryoFuel', 'stormHerald', 'whiteGale'
+  ]),
+}
+
 
 const Game = {
   mode: 'menu',
@@ -763,6 +1356,9 @@ const Game = {
   hazards: [],
   drones: [],
   orbitals: [],
+  controlsTimer: 0,
+  classStateKey: '',
+  menuSummary: '',
 }
 
 const Player = {
@@ -789,65 +1385,82 @@ const Player = {
   stationaryTime: 0,
   movingTime: 0,
   panicPulseCd: 0,
+  ramMemory: new Map(),
+}
+
+function CreateDefaultMeta() {
+  return {
+    echoes: 0,
+    bestScore: 0,
+    totalRuns: 0,
+    bossClears: 0,
+    selectedClass: 'strider',
+    shop: {
+      vitality: 0,
+      arsenal: 0,
+      magnetism: 0,
+      scholarship: 0,
+      momentum: 0,
+      aegis: 0,
+      fortune: 0,
+      reserve: 0,
+    },
+  }
+}
+
+function NormalizeMeta(data) {
+  const base = CreateDefaultMeta()
+  const selectedClass = ClassById[data?.selectedClass] ? data.selectedClass : base.selectedClass
+
+  return {
+    echoes: Number(data?.echoes || 0),
+    bestScore: Number(data?.bestScore || 0),
+    totalRuns: Number(data?.totalRuns || 0),
+    bossClears: Number(data?.bossClears || 0),
+    selectedClass,
+    shop: {
+      vitality: Number(data?.shop?.vitality || 0),
+      arsenal: Number(data?.shop?.arsenal || 0),
+      magnetism: Number(data?.shop?.magnetism || 0),
+      scholarship: Number(data?.shop?.scholarship || 0),
+      momentum: Number(data?.shop?.momentum || 0),
+      aegis: Number(data?.shop?.aegis || 0),
+      fortune: Number(data?.shop?.fortune || 0),
+      reserve: Number(data?.shop?.reserve || 0),
+    },
+  }
 }
 
 function LoadMeta() {
-  const raw = localStorage.getItem(SAVE_KEY)
+  for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
+    const raw = localStorage.getItem(key)
 
-  if (!raw) {
-    return {
-      echoes: 0,
-      bestScore: 0,
-      shop: {
-        vitality: 0,
-        arsenal: 0,
-        magnetism: 0,
-        scholarship: 0,
-        momentum: 0,
-        aegis: 0,
-        fortune: 0,
-        reserve: 0,
-      },
+    if (!raw) {
+      continue
+    }
+
+    try {
+      return NormalizeMeta(JSON.parse(raw))
+    } catch (error) {
+      continue
     }
   }
 
-  try {
-    const data = JSON.parse(raw)
-
-    return {
-      echoes: Number(data.echoes || 0),
-      bestScore: Number(data.bestScore || 0),
-      shop: {
-        vitality: Number(data.shop?.vitality || 0),
-        arsenal: Number(data.shop?.arsenal || 0),
-        magnetism: Number(data.shop?.magnetism || 0),
-        scholarship: Number(data.shop?.scholarship || 0),
-        momentum: Number(data.shop?.momentum || 0),
-        aegis: Number(data.shop?.aegis || 0),
-        fortune: Number(data.shop?.fortune || 0),
-        reserve: Number(data.shop?.reserve || 0),
-      },
-    }
-  } catch (error) {
-    return {
-      echoes: 0,
-      bestScore: 0,
-      shop: {
-        vitality: 0,
-        arsenal: 0,
-        magnetism: 0,
-        scholarship: 0,
-        momentum: 0,
-        aegis: 0,
-        fortune: 0,
-        reserve: 0,
-      },
-    }
-  }
+  return CreateDefaultMeta()
 }
 
 function SaveMeta() {
   localStorage.setItem(SAVE_KEY, JSON.stringify(Meta))
+}
+
+function OverwriteMeta(source) {
+  const fresh = NormalizeMeta(source)
+
+  for (const key of Object.keys(Meta)) {
+    delete Meta[key]
+  }
+
+  Object.assign(Meta, fresh)
 }
 
 function Clamp(value, min, max) {
@@ -883,6 +1496,174 @@ function Resize() {
   Canvas.style.width = Width + 'px'
   Canvas.style.height = Height + 'px'
   Ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
+}
+
+function GetSelectedClassId() {
+  return ClassById[Meta.selectedClass] ? Meta.selectedClass : 'strider'
+}
+
+function GetSelectedClassDef() {
+  return ClassById[GetSelectedClassId()] || ClassDefs[0]
+}
+
+function ApplyEffects(stats, effects, amount = 1) {
+  if (!effects) {
+    return
+  }
+
+  for (const [key, value] of Object.entries(effects)) {
+    if (stats[key] == null) {
+      stats[key] = 0
+    }
+
+    stats[key] += value * amount
+  }
+}
+
+function GetActiveClassState() {
+  const classDef = GetSelectedClassDef()
+  const state = {
+    classId: classDef.id,
+    baseName: classDef.name,
+    name: classDef.name,
+    stage: 0,
+    lineText: classDef.lineText,
+    stage2Effects: null,
+  }
+
+  for (const branch of classDef.branches) {
+    if (!HasTalent(branch.talentId)) {
+      continue
+    }
+
+    state.name = branch.stage1Name
+    state.stage = 1
+    state.lineText = branch.stage1Name + ' online'
+
+    if (Game.level >= branch.stage2Level && CountTalent(branch.requiresId) >= branch.requiresCount) {
+      state.name = branch.stage2Name
+      state.stage = 2
+      state.lineText = branch.stage2Name + ' online'
+      state.stage2Effects = branch.stage2Effects
+    }
+
+    break
+  }
+
+  return state
+}
+
+function SyncClassState(force = false) {
+  const state = GetActiveClassState()
+  const key = state.classId + ':' + state.name + ':' + state.stage
+
+  if (!force && Game.classStateKey === key) {
+    return
+  }
+
+  if (!force && Game.classStateKey && Game.mode === 'playing') {
+    SpawnFloater(Player.x, Player.y - 30, state.name.toUpperCase(), state.stage >= 2 ? '#ffd76a' : '#79e7ff')
+  }
+
+  Game.classStateKey = key
+  UpdateMenuSummary()
+}
+
+function OpenMenu(page = 'run') {
+  document.body.classList.add('menu-open')
+  MenuOverlay.classList.remove('hidden')
+  SwitchMenuPage(page)
+  UpdateMenuSummary()
+}
+
+function CloseMenu() {
+  document.body.classList.remove('menu-open')
+  MenuOverlay.classList.add('hidden')
+}
+
+function SwitchMenuPage(page) {
+  for (const tab of MenuTabs) {
+    tab.classList.toggle('active', tab.dataset.page === page)
+  }
+
+  for (const pageNode of MenuPages) {
+    pageNode.classList.toggle('active', pageNode.dataset.page === page)
+  }
+}
+
+function SelectClass(id) {
+  if (!ClassById[id]) {
+    return
+  }
+
+  Meta.selectedClass = id
+  SaveMeta()
+  RenderClasses()
+  UpdateMenuSummary()
+  UpdateHud()
+}
+
+function RenderClasses() {
+  ClassGrid.innerHTML = ''
+  const selectedClassId = GetSelectedClassId()
+
+  for (const classDef of ClassDefs) {
+    const card = document.createElement('button')
+    card.type = 'button'
+    card.className = 'classCard' + (selectedClassId === classDef.id ? ' selected' : '')
+    card.innerHTML = `
+      <div class="classHead">
+        <div>
+          <div class="classRole">${classDef.role}</div>
+          <div class="className">${classDef.name}</div>
+        </div>
+        <div class="tiny">2 Paths</div>
+      </div>
+      <div class="classDesc">${classDef.desc}</div>
+      <div class="tagRow">${classDef.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+    `
+    card.addEventListener('click', () => SelectClass(classDef.id))
+    ClassGrid.appendChild(card)
+  }
+}
+
+function UpdateMenuSummary() {
+  const classDef = GetSelectedClassDef()
+  const state = GetActiveClassState()
+  const bestScore = Math.floor(Meta.bestScore || 0)
+
+  SelectedClassName.textContent = classDef.name
+  SelectedClassLine.textContent = classDef.lineText
+  ClassDetailTitle.textContent = classDef.name
+  ClassDetailText.textContent = classDef.desc + ' ' + classDef.tip
+  ClassDetailTags.innerHTML = classDef.tags.map(tag => `<span>${tag}</span>`).join('')
+  TalentPoolText.textContent = TalentDefs.length + ' Talents'
+  MetaStatsText.innerHTML = `Best score <strong>${bestScore}</strong><br>Total runs <strong>${Meta.totalRuns}</strong><br>Boss clears <strong>${Meta.bossClears}</strong><br>Sky Marks <strong>${Meta.echoes}</strong><br>Active frame <strong>${state.name}</strong>`
+
+  if (Game.menuSummary) {
+    SummaryText.textContent = Game.menuSummary
+  } else {
+    SummaryText.textContent = classDef.startText
+  }
+}
+
+function ResetAllSaveData() {
+  for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
+    localStorage.removeItem(key)
+  }
+
+  OverwriteMeta(CreateDefaultMeta())
+  Game.menuSummary = ''
+  RenderClasses()
+  RenderShop()
+  RenderOwnedTalents()
+  UpdateMenuSummary()
+  UpdateHud()
+  SaveMeta()
+}
+
+function UpdateControlsPrompt() {
+  ControlsPrompt.classList.toggle('hidden', !(Game.mode === 'playing' && Game.controlsTimer > 0))
 }
 
 function ResetArrays() {
@@ -931,6 +1712,9 @@ function ResetRun() {
   Game.talentCounts = {}
   Game.talentHistory = []
   Game.talentSnapshot = []
+  Game.controlsTimer = 4.8
+  Game.classStateKey = ''
+  Game.menuSummary = ''
   ResetArrays()
 
   Player.x = Width * 0.5
@@ -955,15 +1739,20 @@ function ResetRun() {
   Player.stationaryTime = 0
   Player.movingTime = 0
   Player.panicPulseCd = 0
+  Player.ramMemory.clear()
+
+  Meta.totalRuns += 1
+  SaveMeta()
 
   RecalculateStats(true)
-  MenuOverlay.classList.add('hidden')
+  SyncClassState(true)
+  CloseMenu()
   TalentOverlay.style.display = 'none'
   BossPanel.classList.add('hidden')
   GoalText.textContent = 'Survive to 2:00'
-  RunTip.textContent = 'Move with WASD or Arrow Keys. Dash with Space or Shift. You auto-fire at the nearest target.'
+  RunTip.textContent = GetSelectedClassDef().tip
   RenderOwnedTalents()
-  SummaryText.textContent = 'Survive until the final boss arrives at 2:00. Beat it to clear the run. You only gain Echoes from important milestones like major level marks and boss clears.'
+  UpdateControlsPrompt()
 }
 
 function EndRun(win) {
@@ -975,16 +1764,21 @@ function EndRun(win) {
   Game.win = win
   Game.bossKilled = Game.bossKilled || win
   Meta.bestScore = Math.max(Meta.bestScore, Math.floor(Game.score))
+
+  if (win) {
+    Meta.bossClears += 1
+  }
+
   Game.echoesEarned = CalculateEchoes(win)
   Meta.echoes += Game.echoesEarned
+  Game.menuSummary = win
+    ? `Run clear. Banked ${Game.echoesEarned} Sky Marks. Best score ${Meta.bestScore}.`
+    : `Run over. Banked ${Game.echoesEarned} Sky Marks. Best score ${Meta.bestScore}.`
+
   SaveMeta()
   RenderShop()
   UpdateHud()
-
-  MenuOverlay.classList.remove('hidden')
-  SummaryText.textContent = win
-    ? `You cleared the run. Gained ${Game.echoesEarned} Echoes. Best score: ${Meta.bestScore}.`
-    : `Run over. Gained ${Game.echoesEarned} Echoes. Reach level 5 or beat the boss to start earning real prestige.`
+  OpenMenu('run')
 }
 
 function CalculateEchoes(win) {
@@ -1023,7 +1817,9 @@ function AddTalent(id) {
   const talent = TalentById[id]
   SpawnFloater(Player.x, Player.y - 24, '+' + talent.name, talent.rarity === 'evolved' ? '#9e7bff' : talent.rarity === 'keystone' ? '#f27dff' : '#7cffc7')
   RecalculateStats(false)
+  SyncClassState()
   RenderOwnedTalents()
+  UpdateMenuSummary()
 }
 
 function RecalculateStats(initial) {
@@ -1031,6 +1827,7 @@ function RecalculateStats(initial) {
   const prevShieldMax = Player.maxShield || 0
   const hpRatio = initial ? 1 : Clamp(Player.hp / prevMax, 0, 1)
   const shieldRatio = initial ? 1 : (prevShieldMax > 0 ? Clamp(Player.shield / prevShieldMax, 0, 1) : 0)
+  const classDef = GetSelectedClassDef()
 
   const stats = {
     maxHp: 100 + Meta.shop.vitality * 12,
@@ -1109,7 +1906,15 @@ function RecalculateStats(initial) {
     predator: 0,
     cosmology: 0,
     onDashShots: 0,
+    disablePrimary: 0,
+    ramDamage: 0,
+    impactShield: 0,
+    impactWave: 0,
+    contactNova: 0,
+    bulwark: 0,
   }
+
+  ApplyEffects(stats, classDef.effects)
 
   for (const [id, amount] of Object.entries(Game.talentCounts)) {
     const talent = TalentById[id]
@@ -1118,14 +1923,11 @@ function RecalculateStats(initial) {
       continue
     }
 
-    for (const [key, value] of Object.entries(talent.effects)) {
-      if (stats[key] == null) {
-        stats[key] = 0
-      }
-
-      stats[key] += value * amount
-    }
+    ApplyEffects(stats, talent.effects, amount)
   }
+
+  const classState = GetActiveClassState()
+  ApplyEffects(stats, classState.stage2Effects)
 
   if (stats.stormDoctrine > 0) {
     const elementCount = CountTalent('sparkRounds') + CountTalent('emberCore') + CountTalent('frostTip') + CountTalent('venomTouch') + CountTalent('thunderCrown') + CountTalent('whiteFurnace') + CountTalent('absoluteZero')
@@ -1158,10 +1960,15 @@ function RecalculateStats(initial) {
   stats.storm = Math.max(0, Math.floor(stats.storm))
   stats.bloodAura = Math.max(0, Math.floor(stats.bloodAura))
   stats.sanctuaryAura = Math.max(0, Math.floor(stats.sanctuaryAura))
+  stats.disablePrimary = Math.max(0, Math.floor(stats.disablePrimary))
+  stats.impactShield = Math.max(0, Math.floor(stats.impactShield))
+  stats.impactWave = Math.max(0, Math.floor(stats.impactWave))
+  stats.contactNova = Math.max(0, Math.floor(stats.contactNova))
+  stats.bulwark = Math.max(0, Math.floor(stats.bulwark))
 
   Player.stats = stats
   Player.maxHp = stats.maxHp
-  Player.hp = Clamp(initial ? stats.maxHp : Player.maxHp * hpRatio, 1, stats.maxHp)
+  Player.hp = Clamp(initial ? stats.maxHp : stats.maxHp * hpRatio, 1, stats.maxHp)
   Player.maxShield = stats.shieldMax
   Player.shield = initial ? stats.shieldMax : Clamp(stats.shieldMax * shieldRatio, 0, stats.shieldMax)
   Player.reviveLeft = stats.revive
@@ -1216,6 +2023,8 @@ function GainXp(value) {
   while (Game.xp >= Game.nextXp) {
     Game.xp -= Game.nextXp
     Game.level += 1
+    RecalculateStats(false)
+    SyncClassState()
     Game.nextXp = CalcNextXp(Game.level)
     Player.hp = Clamp(Player.hp + 10, 0, Player.maxHp)
     Player.shield = Clamp(Player.shield + 6, 0, Player.maxShield)
@@ -1224,7 +2033,17 @@ function GainXp(value) {
 }
 
 function CanOfferTalent(talent) {
+  const classId = GetSelectedClassId()
+
   if (CountTalent(talent.id) >= talent.max) {
+    return false
+  }
+
+  if (talent.classId && talent.classId !== classId) {
+    return false
+  }
+
+  if (RestrictedTalentIdsByClass[classId]?.has(talent.id)) {
     return false
   }
 
@@ -1263,15 +2082,21 @@ function CanOfferTalent(talent) {
   return true
 }
 
-function RarityWeight(rarity) {
+function RarityWeight(rarity, talent = null) {
   const luckScale = 1 + Player.stats.luck
+  let weight = 1
 
-  if (rarity === 'common') return 8
-  if (rarity === 'uncommon') return 4 * luckScale
-  if (rarity === 'rare') return 2.25 * luckScale
-  if (rarity === 'keystone') return 1.15 * luckScale
-  if (rarity === 'evolved') return 1.4 * luckScale
-  return 1
+  if (rarity === 'common') weight = 8
+  if (rarity === 'uncommon') weight = 4 * luckScale
+  if (rarity === 'rare') weight = 2.25 * luckScale
+  if (rarity === 'keystone') weight = 1.15 * luckScale
+  if (rarity === 'evolved') weight = 1.4 * luckScale
+
+  if (talent?.classId === GetSelectedClassId()) {
+    weight *= talent.rarity === 'evolved' ? 1.45 : 1.22
+  }
+
+  return weight
 }
 
 function PickWeighted(pool, used) {
@@ -1284,13 +2109,13 @@ function PickWeighted(pool, used) {
   let total = 0
 
   for (const talent of filtered) {
-    total += RarityWeight(talent.rarity)
+    total += RarityWeight(talent.rarity, talent)
   }
 
   let roll = Math.random() * total
 
   for (const talent of filtered) {
-    roll -= RarityWeight(talent.rarity)
+    roll -= RarityWeight(talent.rarity, talent)
 
     if (roll <= 0) {
       return talent
@@ -1352,6 +2177,10 @@ function RenderTalentCards() {
     const tags = []
     tags.push('Owned ' + CountTalent(talent.id) + '/' + talent.max)
 
+    if (talent.classId) {
+      tags.push(ClassById[talent.classId]?.name || talent.classId)
+    }
+
     if (talent.requires) {
       tags.push('Requires ' + talent.requires.map(r => TalentById[r.id].name + ' ' + r.count).join(', '))
     }
@@ -1389,8 +2218,7 @@ function RenderOwnedTalents() {
 }
 
 function RenderShop() {
-  MenuEchoText.textContent = Meta.echoes + ' Echoes'
-  EchoText.textContent = Meta.echoes
+  MenuEchoText.textContent = Meta.echoes + ' Sky Marks'
   ShopGrid.innerHTML = ''
 
   for (const item of ShopDefs) {
@@ -1406,7 +2234,7 @@ function RenderShop() {
           <div class="tiny">Rank ${rank}/${item.max}</div>
           <div style="font-weight: 900; font-size: 18px; margin-top: 4px;">${item.name}</div>
         </div>
-        <div class="shopCost">${rank >= item.max ? 'Maxed' : cost + ' Echoes'}</div>
+        <div class="shopCost">${rank >= item.max ? 'Maxed' : cost + ' Marks'}</div>
       </div>
       <div class="footerTips">${item.desc}</div>
     `
@@ -1419,6 +2247,8 @@ function RenderShop() {
     wrap.appendChild(button)
     ShopGrid.appendChild(wrap)
   }
+
+  UpdateMenuSummary()
 }
 
 function PurchaseShop(id) {
@@ -1605,7 +2435,7 @@ function FireAutoShot() {
     return
   }
 
-  if (Player.fireCd > 0) {
+  if (Player.fireCd > 0 || Player.stats.disablePrimary > 0) {
     return
   }
 
@@ -1935,6 +2765,51 @@ function UpdateStars(dt) {
   }
 }
 
+function UpdateRamHits(dt) {
+  for (const [enemy, cd] of Player.ramMemory.entries()) {
+    Player.ramMemory.set(enemy, cd - dt)
+
+    if (Player.ramMemory.get(enemy) <= 0) {
+      Player.ramMemory.delete(enemy)
+    }
+  }
+
+  if (Player.stats.ramDamage <= 0 || Player.dashTime <= 0) {
+    return
+  }
+
+  for (const enemy of Game.enemies.slice()) {
+    const cd = Player.ramMemory.get(enemy) || 0
+
+    if (cd > 0) {
+      continue
+    }
+
+    if (Dist(Player.x, Player.y, enemy.x, enemy.y) < Player.r + enemy.r + 6) {
+      Player.ramMemory.set(enemy, 0.22)
+      DamageEnemy(enemy, Player.stats.damage * Player.stats.ramDamage, 'ram')
+
+      const angle = Math.atan2(enemy.y - Player.y, enemy.x - Player.x)
+      enemy.x += Math.cos(angle) * (20 + Player.stats.impactWave * 8)
+      enemy.y += Math.sin(angle) * (20 + Player.stats.impactWave * 8)
+
+      if (Player.stats.impactShield > 0) {
+        Player.shield = Clamp(Player.shield + 8 + Player.stats.impactShield * 6, 0, Player.maxShield)
+      }
+
+      if (Player.stats.impactWave > 0) {
+        SpawnHazard(Player.x, Player.y, 34 + Player.stats.impactWave * 12, Player.stats.damage * 0.92, 0.2, 'rgba(255, 161, 97, 0.24)')
+      }
+
+      if (Player.stats.contactNova > 0) {
+        SpawnHazard(Player.x, Player.y, 48 + Player.stats.contactNova * 14, Player.stats.damage * 1.08, 0.22, 'rgba(255, 215, 106, 0.28)')
+      }
+
+      SpawnParticle(enemy.x, enemy.y, '#ffd76a', 10, 120)
+    }
+  }
+}
+
 function UpdatePlayer(dt) {
   let dx = 0
   let dy = 0
@@ -2003,6 +2878,7 @@ function UpdatePlayer(dt) {
     }
   }
 
+  UpdateRamHits(dt)
   FireAutoShot()
 }
 
@@ -2454,10 +3330,14 @@ function Update(dt) {
   }
 
   Game.slowTimer = Math.max(0, Game.slowTimer - dt)
+  Game.controlsTimer = Math.max(0, Game.controlsTimer - dt)
   UpdateHud()
+  UpdateControlsPrompt()
 }
 
 function UpdateHud() {
+  const classState = GetActiveClassState()
+
   HpText.textContent = Math.ceil(Player.hp) + ' / ' + Math.ceil(Player.maxHp)
   ArmorText.textContent = Math.floor(Player.stats.armor) + ' Armor'
   HpFill.style.transform = `scaleX(${Clamp(Player.hp / Player.maxHp, 0, 1)})`
@@ -2469,7 +3349,7 @@ function UpdateHud() {
   ScoreText.textContent = Math.floor(Game.score)
   DashText.textContent = Player.dashCd > 0 ? Player.dashCd.toFixed(1) + 's' : 'Ready'
   KillText.textContent = Game.kills
-  EchoText.textContent = Meta.echoes
+  ClassText.textContent = classState.name
 
   if (!Game.bossSpawned) {
     GoalText.textContent = 'Survive to 2:00'
@@ -2709,7 +3589,7 @@ function OnKey(code, down) {
 window.addEventListener('keydown', event => {
   OnKey(event.code, true)
 
-  if (event.code === 'Space' || event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+  if (event.code === 'Space' || event.code === 'ShiftLeft' || event.code === 'ShiftRight' || event.code === 'ControlLeft' || event.code === 'ControlRight') {
     event.preventDefault()
     TriggerDash()
   }
@@ -2725,6 +3605,20 @@ window.addEventListener('keyup', event => {
 
 StartButton.addEventListener('click', ResetRun)
 ResetShopButton.addEventListener('click', ResetPrestigeShop)
+WipeSaveButton.addEventListener('click', () => {
+  if (!confirm('Clear all local Sky Dash save data on this browser?')) {
+    return
+  }
+
+  ResetAllSaveData()
+})
+BackToRunButton.addEventListener('click', () => SwitchMenuPage('run'))
+SettingsButton.addEventListener('click', () => SwitchMenuPage('settings'))
+
+for (const tab of MenuTabs) {
+  tab.addEventListener('click', () => SwitchMenuPage(tab.dataset.page))
+}
+
 window.addEventListener('resize', () => {
   Resize()
   BuildStarfield()
@@ -2732,10 +3626,1317 @@ window.addEventListener('resize', () => {
 
 Resize()
 BuildStarfield()
+RenderClasses()
 RenderShop()
 RenderOwnedTalents()
+UpdateMenuSummary()
 UpdateHud()
+OpenMenu('run')
 requestAnimationFrame(Loop)
 </script>
+
+<style>
+  .topbar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    grid-template-columns: minmax(250px, 300px) minmax(250px, 320px) minmax(250px, 320px);
+    gap: 10px;
+    align-items: start;
+  }
+
+  .statsPanel {
+    padding: 10px 12px;
+  }
+
+  .big {
+    font-size: 20px;
+  }
+
+  .subGrid {
+    gap: 6px;
+  }
+
+  .pill {
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .pill .value {
+    font-size: 15px;
+  }
+
+  .listPanel {
+    left: auto;
+    right: 12px;
+    bottom: 12px;
+    width: min(290px, calc(100vw - 24px));
+    max-height: 18vh;
+    padding: 10px 12px;
+    background: rgba(7, 12, 26, 0.72);
+  }
+
+  .ownedTag {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .menuText {
+    max-width: 34ch;
+  }
+
+  .sectionText {
+    max-width: 42ch;
+  }
+
+  .classCard {
+    min-height: 0;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .classDesc {
+    display: none;
+  }
+
+  .className {
+    font-size: 18px;
+  }
+
+  .tagRow span,
+  .detailTags span {
+    font-size: 10px;
+    padding: 5px 7px;
+  }
+
+  .controlsPrompt {
+    bottom: 24px;
+  }
+
+  .controlsCard {
+    padding: 14px 16px;
+  }
+
+  .mobileHud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 16px;
+    display: none;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 24;
+  }
+
+  .touchStick {
+    width: 136px;
+    height: 136px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(6, 10, 20, 0.5);
+    backdrop-filter: blur(10px);
+    position: relative;
+    pointer-events: auto;
+    touch-action: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .touchThumb {
+    width: 58px;
+    height: 58px;
+    border-radius: 999px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(121, 231, 255, 0.2);
+    border: 1px solid rgba(121, 231, 255, 0.32);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .touchDash {
+    width: 100px;
+    height: 100px;
+    border-radius: 999px;
+    pointer-events: auto;
+    touch-action: none;
+    background: linear-gradient(180deg, rgba(121, 231, 255, 0.2), rgba(158, 123, 255, 0.2));
+    color: var(--text);
+    border: 1px solid rgba(121, 231, 255, 0.22);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  body.is-touch #app {
+    touch-action: none;
+  }
+
+  body.is-touch .mobileHud {
+    display: flex;
+  }
+
+  body.is-touch .controlsPrompt {
+    display: none !important;
+  }
+
+  body.is-touch .listPanel {
+    bottom: 126px;
+    max-width: 56vw;
+    max-height: 15vh;
+  }
+
+  @media (max-width: 980px) {
+    .topbar {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .rightStack {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .topbar {
+      grid-template-columns: 1fr;
+    }
+
+    .rightStack {
+      grid-column: auto;
+    }
+
+    .classGrid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .classGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+<script>
+(() => {
+  const StageData = [
+    { id: 'sunbreak', name: 'Sunbreak Reef', glow: '#ffd76a', haze: '#ff9e6f', top: '#19325c', bottom: '#060a18', grid: 'rgba(255,255,255,0.04)', mist: 'rgba(255, 194, 120, 0.08)', bossName: 'Helios Crown', miniBossName: 'Flare Warden' },
+    { id: 'stormwake', name: 'Stormwake Array', glow: '#79e7ff', haze: '#7aa7ff', top: '#112247', bottom: '#07101f', grid: 'rgba(121,231,255,0.06)', mist: 'rgba(121, 231, 255, 0.08)', bossName: 'Tempest Regent', miniBossName: 'Arc Talon' },
+    { id: 'frostline', name: 'Frostline Span', glow: '#d4efff', haze: '#8bd7ff', top: '#18304a', bottom: '#071018', grid: 'rgba(212,239,255,0.05)', mist: 'rgba(180, 228, 255, 0.08)', bossName: 'White Monarch', miniBossName: 'Ice Breaker' },
+    { id: 'ironrift', name: 'Ironrift Furnace', glow: '#ff8f6c', haze: '#ffce6f', top: '#2a1f32', bottom: '#0b0914', grid: 'rgba(255,143,108,0.06)', mist: 'rgba(255, 143, 108, 0.08)', bossName: 'Forge Leviathan', miniBossName: 'Smelt Hound' },
+    { id: 'voidcrown', name: 'Void Crown', glow: '#b195ff', haze: '#79e7ff', top: '#151131', bottom: '#05060f', grid: 'rgba(177,149,255,0.06)', mist: 'rgba(158, 123, 255, 0.08)', bossName: 'Seraph Null', miniBossName: 'Null Reaver' },
+  ]
+
+  const TalentPatchMap = {
+    sparkRounds: { unlocks: ['staticNet', 'chainRelay', 'stormCaller', 'thunderCrown'] },
+    stormCells: { unlocks: ['chainRelay', 'stormHerald'] },
+    emberCore: { unlocks: ['cinderWake', 'whiteFurnace'] },
+    frostTip: { unlocks: ['coldFront', 'absoluteZero'] },
+    cryoFuel: { unlocks: ['whiteGale'] },
+    venomTouch: { unlocks: ['plagueEngine'] },
+    droneBuddy: { unlocks: ['sniperDrone', 'sovereignDrone'] },
+    orbitSeed: { unlocks: ['orbitForge', 'sovereignDrone'] },
+    staticNet: { needsAny: ['sparkRounds', 'stormCells'] },
+    chainRelay: { needsAny: ['sparkRounds', 'stormCells'] },
+    stormCaller: { needsAny: ['sparkRounds', 'stormCells'] },
+    cinderWake: { needsAny: ['emberCore'] },
+    coldFront: { needsAny: ['frostTip', 'cryoFuel'] },
+    plagueEngine: { needsAny: ['venomTouch'] },
+    sniperDrone: { needsAny: ['droneBuddy', 'commandHalo', 'sentinelNet'] },
+    orbitForge: { needsAny: ['orbitSeed', 'commandHalo', 'sentinelNet', 'cosmology'] },
+  }
+
+  const TouchEnabled = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  let FitScale = 1
+  let FitOffsetX = 0
+  let FitOffsetY = 0
+  let BrowserWidth = 0
+  let BrowserHeight = 0
+
+  document.body.classList.toggle('is-touch', TouchEnabled)
+
+  const menuText = document.querySelector('.menuText')
+  if (menuText) {
+    menuText.textContent = 'Pick a frame and launch. Most of the run reveals itself while you play.'
+  }
+
+  const sectionText = document.querySelector('.sectionText')
+  if (sectionText) {
+    sectionText.textContent = 'Pick a frame. The rest opens up inside the run.'
+  }
+
+  const keycap = document.querySelector('.keycap.action')
+  if (keycap) {
+    keycap.textContent = 'Space'
+  }
+
+  const selectedLineLabel = Array.from(document.querySelectorAll('.infoChip .tiny')).find(node => node.textContent.trim() === 'Evolution Line')
+  if (selectedLineLabel) {
+    selectedLineLabel.textContent = 'Flight Line'
+  }
+
+  const draftLabel = Array.from(document.querySelectorAll('.infoChip .tiny')).find(node => node.textContent.trim() === 'Draft Pool')
+  if (draftLabel) {
+    draftLabel.textContent = 'Run Format'
+  }
+
+  const frameNotes = Array.from(document.querySelectorAll('.detailPanel .tiny')).find(node => node.textContent.trim() === 'Frame Notes')
+  if (frameNotes) {
+    frameNotes.textContent = 'Frame Read'
+  }
+
+  const goalLabel = GoalText?.parentElement?.querySelector('.tiny')
+  if (goalLabel) {
+    goalLabel.textContent = 'Zone'
+  }
+
+  let mobileHud = document.getElementById('mobileHud')
+  if (!mobileHud) {
+    mobileHud = document.createElement('div')
+    mobileHud.id = 'mobileHud'
+    mobileHud.className = 'mobileHud hidden'
+    mobileHud.innerHTML = `
+      <div class="touchStick" id="touchStick" aria-label="Move stick">
+        <div class="touchThumb" id="touchThumb"></div>
+      </div>
+      <button class="touchDash" id="touchDash" type="button">Boost</button>
+    `
+    document.querySelector('.overlay')?.appendChild(mobileHud)
+  }
+
+  const TouchStick = document.getElementById('touchStick')
+  const TouchThumb = document.getElementById('touchThumb')
+  const TouchDash = document.getElementById('touchDash')
+
+  for (const [id, patch] of Object.entries(TalentPatchMap)) {
+    if (TalentById[id]) {
+      Object.assign(TalentById[id], patch)
+    }
+  }
+
+  function GetStageDef(stage = Game.stage) {
+    return StageData[Math.max(1, Math.min(StageData.length, stage)) - 1] || StageData[0]
+  }
+
+  function ClassActsAsSource(id) {
+    const classId = GetSelectedClassId()
+
+    if (classId === 'tempest' && ['sparkRounds', 'stormCells', 'emberCore', 'frostTip', 'cryoFuel'].includes(id)) {
+      return true
+    }
+
+    if (classId === 'bastion' && ['orbitSeed'].includes(id)) {
+      return true
+    }
+
+    return false
+  }
+
+  function HasUnlockSource(talent) {
+    if (!talent?.needsAny || talent.needsAny.length === 0) {
+      return true
+    }
+
+    return talent.needsAny.some(id => HasTalent(id) || ClassActsAsSource(id))
+  }
+
+  Object.assign(Game, {
+    stage: 1,
+    wave: 0,
+    waveState: 'pregame',
+    waveCooldown: 0,
+    waveSpawnsLeft: 0,
+    waveSpawnCd: 0,
+    waveCadence: 0.5,
+    waveType: 'normal',
+    stageBossesCleared: 0,
+    miniBossesKilled: 0,
+  })
+
+  function GetWaveType(stage = Game.stage, wave = Game.wave) {
+    if (wave >= 50) return 'boss'
+    if (wave > 0 && wave % 10 === 0) return 'mini'
+    return 'normal'
+  }
+
+  function GetWavePlan(stage = Game.stage, wave = Game.wave) {
+    const type = GetWaveType(stage, wave)
+    const baseCount = 6 + stage * 2 + Math.floor(wave * 0.42)
+
+    if (type === 'boss') {
+      return { type, count: 0, cadence: 0.6, eliteChance: 0.14, status: 'Boss round' }
+    }
+
+    if (type === 'mini') {
+      return { type, count: 8 + stage * 2 + Math.floor(wave * 0.22), cadence: Math.max(0.24, 0.52 - stage * 0.03), eliteChance: 0.18 + stage * 0.03, status: 'Mini-boss wave' }
+    }
+
+    return { type, count: baseCount, cadence: Math.max(0.2, 0.72 - wave * 0.008 - stage * 0.03), eliteChance: Math.min(0.32, 0.03 + stage * 0.025 + wave * 0.0035), status: 'Wave live' }
+  }
+
+  function QueueNextWave(delay = 1.2) {
+    Game.waveState = 'intermission'
+    Game.waveCooldown = delay
+    Game.waveSpawnCd = 0
+    Game.waveSpawnsLeft = 0
+  }
+
+  function SpawnWaveEnemy(plan, forceKind = null, eliteOverride = null) {
+    const stage = Game.stage
+    const wave = Game.wave
+    const roll = Math.random()
+    let kind = forceKind
+
+    if (!kind) {
+      if (stage === 1) {
+        kind = roll < 0.42 ? 'drifter' : roll < 0.68 ? 'skitter' : roll < 0.86 ? 'sentry' : 'bruiser'
+      } else if (stage === 2) {
+        kind = roll < 0.28 ? 'drifter' : roll < 0.56 ? 'skitter' : roll < 0.8 ? 'sentry' : 'bruiser'
+      } else if (stage === 3) {
+        kind = roll < 0.24 ? 'drifter' : roll < 0.46 ? 'skitter' : roll < 0.72 ? 'sentry' : 'bruiser'
+      } else if (stage === 4) {
+        kind = roll < 0.18 ? 'drifter' : roll < 0.42 ? 'skitter' : roll < 0.62 ? 'sentry' : 'bruiser'
+      } else {
+        kind = roll < 0.16 ? 'drifter' : roll < 0.36 ? 'skitter' : roll < 0.58 ? 'sentry' : 'bruiser'
+      }
+    }
+
+    const elite = eliteOverride == null ? Math.random() < (plan?.eliteChance || 0) : eliteOverride
+    SpawnEnemy(kind, elite, null, null, { stage, wave })
+  }
+
+  function SpawnMiniBoss() {
+    const stage = Game.stage
+    const stageDef = GetStageDef(stage)
+    const hp = 420 + stage * 180 + Game.wave * 18
+
+    Game.enemies.push({
+      type: 'miniBoss',
+      kind: 'miniBoss',
+      name: stageDef.miniBossName,
+      stage,
+      x: Width * 0.5,
+      y: -96,
+      vx: 0,
+      vy: 56,
+      r: 28 + stage,
+      hp,
+      maxHp: hp,
+      speed: 86 + stage * 8,
+      xp: Math.round((22 + stage * 8) * Player.stats.gemBonus),
+      damage: 18 + stage * 4,
+      score: 90 + stage * 22,
+      color: stageDef.glow,
+      elite: true,
+      shootCd: 1.2,
+      rushCd: 4.4,
+      patternCd: 2.6,
+      phase: 0,
+      status: { burn: 0, poison: 0, bleed: 0, chill: 0, freeze: 0 },
+    })
+
+    BossPanel.classList.remove('hidden')
+    Game.bossSpawned = true
+  }
+
+  function SpawnStageBoss(stage = Game.stage) {
+    const stageDef = GetStageDef(stage)
+    const hp = 1700 + stage * 760
+
+    Game.bossSpawned = true
+    Game.enemies.push({
+      type: 'boss',
+      kind: stageDef.id,
+      name: stageDef.bossName,
+      stage,
+      x: Width * 0.5,
+      y: -140,
+      vx: 0,
+      vy: 46,
+      r: 42 + stage * 2,
+      hp,
+      maxHp: hp,
+      speed: 74 + stage * 5,
+      xp: 0,
+      damage: 20 + stage * 5,
+      score: 260 + stage * 100,
+      color: stageDef.glow,
+      elite: true,
+      shootCd: 1.45,
+      summonCd: Math.max(2.4, 5.2 - stage * 0.35),
+      patternCd: 3.6,
+      dashCd: 5.8,
+      phase: 0,
+      arc: 0,
+      status: { burn: 0, poison: 0, bleed: 0, chill: 0, freeze: 0 },
+    })
+
+    BossPanel.classList.remove('hidden')
+  }
+
+  function StartNextWave() {
+    if (Game.mode !== 'playing') return
+    if (Game.stage > StageData.length) { EndRun(true); return }
+
+    Game.wave += 1
+    if (Game.wave > 50) return
+
+    const plan = GetWavePlan(Game.stage, Game.wave)
+    Game.waveType = plan.type
+    Game.waveState = plan.type === 'boss' ? 'boss' : 'spawning'
+    Game.waveCadence = plan.cadence
+    Game.waveSpawnsLeft = plan.count
+    Game.waveSpawnCd = 0.18
+    Game.bossSpawned = false
+    GoalText.textContent = plan.status
+
+    if (plan.type === 'mini') {
+      SpawnMiniBoss()
+    }
+
+    if (plan.type === 'boss') {
+      SpawnStageBoss(Game.stage)
+    }
+  }
+
+  function ClearThreatField() {
+    Game.enemies.length = 0
+    Game.enemyBullets.length = 0
+    Game.hazards.length = 0
+    Game.bossSpawned = false
+    BossPanel.classList.add('hidden')
+  }
+
+  function AdvanceStage() {
+    ClearThreatField()
+    Game.stage += 1
+    Game.wave = 0
+    Player.hp = Clamp(Player.hp + Player.maxHp * 0.18, 0, Player.maxHp)
+    Player.shield = Player.maxShield
+
+    if (Game.stage > StageData.length) {
+      EndRun(true)
+      return
+    }
+
+    GoalText.textContent = 'Stage clear'
+    QueueNextWave(2.1)
+  }
+
+  function UpdateWaveSpawner(dt) {
+    if (Game.mode !== 'playing') return
+
+    if (Game.waveState === 'pregame') {
+      QueueNextWave(0.5)
+    }
+
+    if (Game.waveState === 'intermission') {
+      Game.waveCooldown -= dt
+      if (Game.waveCooldown <= 0) {
+        StartNextWave()
+      }
+      return
+    }
+
+    if (Game.waveState === 'boss') {
+      return
+    }
+
+    if (Game.waveState === 'spawning') {
+      const plan = GetWavePlan(Game.stage, Game.wave)
+      Game.waveSpawnCd -= dt
+
+      while (Game.waveSpawnsLeft > 0 && Game.waveSpawnCd <= 0) {
+        SpawnWaveEnemy(plan)
+        Game.waveSpawnsLeft -= 1
+        Game.waveSpawnCd += plan.cadence
+      }
+
+      if (Game.waveSpawnsLeft <= 0) {
+        Game.waveState = 'cleanup'
+      }
+    }
+
+    if ((Game.waveState === 'cleanup' || Game.waveState === 'spawning') && Game.enemies.length === 0 && !Game.bossSpawned) {
+      Player.shield = Clamp(Player.shield + 6, 0, Player.maxShield)
+      Player.hp = Clamp(Player.hp + Player.maxHp * 0.04, 0, Player.maxHp)
+      GoalText.textContent = 'Wave clear'
+      QueueNextWave(Game.wave % 10 === 0 ? 1.8 : 1.05)
+    }
+  }
+
+  CanOfferTalent = function(talent) {
+    const classId = GetSelectedClassId()
+
+    if (CountTalent(talent.id) >= talent.max) return false
+    if (talent.classId && talent.classId !== classId) return false
+    if (RestrictedTalentIdsByClass[classId]?.has(talent.id)) return false
+    if (!HasUnlockSource(talent)) return false
+    if (talent.rarity === 'keystone' && Game.level < 4) return false
+    if (talent.rarity === 'evolved' && Game.level < 5) return false
+
+    if (talent.requires) {
+      for (const requirement of talent.requires) {
+        if (CountTalent(requirement.id) < requirement.count) return false
+      }
+    }
+
+    if (talent.conflicts) {
+      for (const conflict of talent.conflicts) {
+        if (HasTalent(conflict)) return false
+      }
+    }
+
+    for (const ownedId of Object.keys(Game.talentCounts)) {
+      const owned = TalentById[ownedId]
+      if (owned?.conflicts?.includes(talent.id)) return false
+    }
+
+    return true
+  }
+
+  RenderTalentCards = function() {
+    TalentGrid.innerHTML = ''
+
+    for (const talent of Game.levelOffers) {
+      const card = document.createElement('div')
+      card.className = 'talentCard ' + talent.rarity
+
+      const tags = []
+      tags.push('Owned ' + CountTalent(talent.id) + '/' + talent.max)
+      if (talent.classId) tags.push(ClassById[talent.classId]?.name || talent.classId)
+      if (talent.needsAny) tags.push('Needs ' + talent.needsAny.map(id => TalentById[id]?.name || id).join(' or '))
+      if (talent.requires) tags.push('Evolves from ' + talent.requires.map(r => (TalentById[r.id]?.name || r.id) + ' ' + r.count).join(', '))
+      if (talent.unlocks) tags.push('Opens ' + talent.unlocks.map(id => TalentById[id]?.name || id).join(', '))
+      if (talent.conflicts) tags.push('Locks ' + talent.conflicts.map(id => TalentById[id]?.name || id).join(', '))
+
+      card.innerHTML = `
+        <div class="rarity ${talent.rarity}">${talent.rarity}</div>
+        <div class="talentName">${talent.name}</div>
+        <div class="talentDesc">${talent.desc}</div>
+        <div class="talentMeta">${tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+      `
+
+      card.addEventListener('click', () => ChooseTalent(talent.id))
+      TalentGrid.appendChild(card)
+    }
+  }
+
+  RenderClasses = function() {
+    ClassGrid.innerHTML = ''
+    const selectedClassId = GetSelectedClassId()
+
+    for (const classDef of ClassDefs) {
+      const card = document.createElement('button')
+      card.type = 'button'
+      card.className = 'classCard' + (selectedClassId === classDef.id ? ' selected' : '')
+      card.innerHTML = `
+        <div class="classHead">
+          <div>
+            <div class="classRole">${classDef.role}</div>
+            <div class="className">${classDef.name}</div>
+          </div>
+        </div>
+        <div class="tagRow">${classDef.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+      `
+      card.addEventListener('click', () => SelectClass(classDef.id))
+      ClassGrid.appendChild(card)
+    }
+  }
+
+  UpdateMenuSummary = function() {
+    const classDef = GetSelectedClassDef()
+    const state = GetActiveClassState()
+    const bestScore = Math.floor(Meta.bestScore || 0)
+
+    SelectedClassName.textContent = classDef.name
+    SelectedClassLine.textContent = classDef.role
+    ClassDetailTitle.textContent = classDef.name
+    ClassDetailText.textContent = classDef.tip
+    ClassDetailTags.innerHTML = classDef.tags.map(tag => `<span>${tag}</span>`).join('')
+    TalentPoolText.textContent = '5 Stages'
+    MetaStatsText.innerHTML = `Best score <strong>${bestScore}</strong><br>Total runs <strong>${Meta.totalRuns}</strong><br>Stage boss clears <strong>${Meta.bossClears}</strong><br>Sky Marks <strong>${Meta.echoes}</strong><br>Active frame <strong>${state.name}</strong>`
+
+    if (Game.menuSummary) {
+      SummaryText.textContent = Game.menuSummary
+    } else {
+      SummaryText.textContent = classDef.name + ' selected. Launch and build the rest in-run.'
+    }
+  }
+
+  CalculateEchoes = function(win) {
+    let echoes = 4
+    echoes += Game.stageBossesCleared * 12
+    echoes += Game.miniBossesKilled * 3
+    echoes += Math.floor((Game.stage - 1) * 10)
+    echoes += Math.floor(Game.wave * 0.6)
+    echoes += Math.floor(Game.level * 0.4)
+    if (win) echoes += 20
+    return Math.max(0, Math.round(echoes))
+  }
+
+  EndRun = function(win) {
+    if (Game.mode === 'dead' || Game.mode === 'victory') return
+
+    Game.mode = win ? 'victory' : 'dead'
+    Game.win = win
+    Meta.bestScore = Math.max(Meta.bestScore, Math.floor(Game.score))
+    Game.echoesEarned = CalculateEchoes(win)
+    Meta.echoes += Game.echoesEarned
+    Game.menuSummary = win
+      ? `Run clear. Banked ${Game.echoesEarned} Sky Marks. Best score ${Meta.bestScore}.`
+      : `Run over. Banked ${Game.echoesEarned} Sky Marks. Best score ${Meta.bestScore}.`
+
+    SaveMeta()
+    RenderShop()
+    UpdateHud()
+    OpenMenu('run')
+  }
+
+  ResetRun = function() {
+    Game.mode = 'playing'
+    Game.time = 0
+    Game.score = 0
+    Game.kills = 0
+    Game.level = 1
+    Game.xp = 0
+    Game.nextXp = 18
+    Game.echoesEarned = 0
+    Game.spawnTimer = 0
+    Game.eliteTimer = 20
+    Game.levelOffers = []
+    Game.bossSpawned = false
+    Game.bossKilled = false
+    Game.win = false
+    Game.slowTimer = 0
+    Game.talentCounts = {}
+    Game.talentHistory = []
+    Game.talentSnapshot = []
+    Game.controlsTimer = 4.8
+    Game.classStateKey = ''
+    Game.menuSummary = ''
+    Game.stage = 1
+    Game.wave = 0
+    Game.waveState = 'pregame'
+    Game.waveCooldown = 0.5
+    Game.waveSpawnsLeft = 0
+    Game.waveSpawnCd = 0
+    Game.waveCadence = 0.5
+    Game.waveType = 'normal'
+    Game.stageBossesCleared = 0
+    Game.miniBossesKilled = 0
+    ResetArrays()
+
+    Player.x = Width * 0.5
+    Player.y = Height * 0.72
+    Player.vx = 0
+    Player.vy = 0
+    Player.hp = 100
+    Player.maxHp = 100
+    Player.shield = 0
+    Player.maxShield = 0
+    Player.fireCd = 0
+    Player.dashCd = 0
+    Player.dashTime = 0
+    Player.dashDirX = 0
+    Player.dashDirY = -1
+    Player.hitCd = 0
+    Player.invuln = 0
+    Player.reviveLeft = 0
+    Player.stats = {}
+    Player.trail.length = 0
+    Player.omenTimer = 0
+    Player.stationaryTime = 0
+    Player.movingTime = 0
+    Player.panicPulseCd = 0
+    Player.ramMemory.clear()
+
+    Meta.totalRuns += 1
+    SaveMeta()
+
+    RecalculateStats(true)
+    SyncClassState(true)
+    CloseMenu()
+    TalentOverlay.style.display = 'none'
+    BossPanel.classList.add('hidden')
+    GoalText.textContent = 'Wave 1 incoming'
+    RunTip.textContent = TouchEnabled ? 'Drag to move • Tap Boost' : 'WASD to move • Space to Boost'
+    RenderOwnedTalents()
+    UpdateControlsPrompt()
+  }
+
+  Resize = function() {
+    BrowserWidth = window.innerWidth
+    BrowserHeight = window.innerHeight
+    Canvas.width = Math.floor(BrowserWidth * DPR)
+    Canvas.height = Math.floor(BrowserHeight * DPR)
+    Canvas.style.width = BrowserWidth + 'px'
+    Canvas.style.height = BrowserHeight + 'px'
+
+    Width = 1600
+    Height = 900
+    FitScale = Math.min(BrowserWidth / Width, BrowserHeight / Height)
+    FitOffsetX = (BrowserWidth - Width * FitScale) * 0.5
+    FitOffsetY = (BrowserHeight - Height * FitScale) * 0.5
+    Ctx.setTransform(DPR * FitScale, 0, 0, DPR * FitScale, FitOffsetX * DPR, FitOffsetY * DPR)
+  }
+
+  SpawnEnemy = function(kind, elite = false, x = null, y = null, options = {}) {
+    const stage = options.stage || Game.stage
+    const wave = options.wave || Game.wave
+    const scale = 1 + (stage - 1) * 0.36 + wave * 0.018 + (elite ? 0.26 : 0)
+    const side = Math.floor(Math.random() * 4)
+    let spawnX = x
+    let spawnY = y
+
+    if (spawnX == null || spawnY == null) {
+      if (side === 0) {
+        spawnX = Rand(0, Width)
+        spawnY = -40
+      } else if (side === 1) {
+        spawnX = Width + 40
+        spawnY = Rand(0, Height)
+      } else if (side === 2) {
+        spawnX = Rand(0, Width)
+        spawnY = Height + 40
+      } else {
+        spawnX = -40
+        spawnY = Rand(0, Height)
+      }
+    }
+
+    const config = {
+      drifter: { hp: 26, speed: 86, r: 13, xp: 4, damage: 10, score: 5, color: Colors.enemy },
+      skitter: { hp: 17, speed: 132, r: 10, xp: 3, damage: 8, score: 4, color: '#ff8f7a' },
+      bruiser: { hp: 54, speed: 64, r: 19, xp: 8, damage: 16, score: 9, color: '#ffa96e' },
+      sentry: { hp: 30, speed: 56, r: 14, xp: 7, damage: 10, score: 7, color: '#ffcf7a' },
+    }[kind]
+
+    if (!config) return
+
+    Game.enemies.push({
+      type: 'enemy',
+      kind,
+      stage,
+      wave,
+      aiLevel: stage + Math.floor(wave / 10),
+      x: spawnX,
+      y: spawnY,
+      vx: 0,
+      vy: 0,
+      r: config.r * (elite ? 1.18 : 1),
+      hp: config.hp * scale * (elite ? 2.1 : 1),
+      maxHp: config.hp * scale * (elite ? 2.1 : 1),
+      speed: config.speed * (1 + (stage - 1) * 0.07 + wave * 0.0015),
+      xp: Math.round(config.xp * Player.stats.gemBonus * (elite ? 2.6 : 1) * (1 + (stage - 1) * 0.1)),
+      damage: config.damage * (1 + (stage - 1) * 0.16 + wave * 0.01) * (elite ? 1.35 : 1),
+      score: Math.round(config.score * (1 + Player.stats.scoreBonus) * (elite ? 3 : 1) * (1 + (stage - 1) * 0.14)),
+      color: elite ? Colors.elite : config.color,
+      elite,
+      shootCd: Rand(1.1, 2.2),
+      burstCd: Rand(1.8, 3.8),
+      dashCd: Rand(3.8, 6.6),
+      wobble: Rand(0, Math.PI * 2),
+      strafeDir: Math.random() < 0.5 ? -1 : 1,
+      status: {
+        burn: 0,
+        poison: 0,
+        bleed: 0,
+        chill: 0,
+        freeze: 0,
+      },
+    })
+  }
+
+  SpawnBoss = function() {
+    SpawnStageBoss(Game.stage)
+  }
+
+  KillEnemy = function(enemy, source) {
+    const index = Game.enemies.indexOf(enemy)
+    if (index >= 0) Game.enemies.splice(index, 1)
+
+    Game.kills += 1
+    Game.score += enemy.score
+    SpawnParticle(enemy.x, enemy.y, enemy.type === 'boss' || enemy.type === 'miniBoss' ? '#ffd76a' : enemy.color, enemy.type === 'boss' ? 36 : 12, enemy.type === 'boss' ? 260 : 120)
+
+    if (enemy.type !== 'boss') {
+      SpawnGem(enemy.x, enemy.y, enemy.xp)
+    }
+
+    if (Player.stats.deathNova > 0 && Math.random() < Player.stats.deathNova) {
+      SpawnHazard(enemy.x, enemy.y, 48, Player.stats.damage * 1.1, 0.32, 'rgba(158, 123, 255, 0.35)')
+    }
+
+    if (enemy.status?.burn > 0 && Player.stats.burnBurst > 0) {
+      SpawnHazard(enemy.x, enemy.y, 54, Player.stats.damage * (0.8 + Player.stats.burnBurst), 0.42, 'rgba(255, 170, 110, 0.38)')
+    }
+
+    if (enemy.status?.poison > 0 && Player.stats.plagueSpread > 0) {
+      for (const other of Game.enemies) {
+        if (other === enemy) continue
+        if (Dist(enemy.x, enemy.y, other.x, other.y) < 110 && Math.random() < Player.stats.plagueSpread) {
+          ApplyStatus(other, 'poison', 3.4, Player.stats.damage * (0.12 + Player.stats.poisonPower))
+        }
+      }
+    }
+
+    if (enemy.type === 'miniBoss') {
+      Game.miniBossesKilled += 1
+    }
+
+    if (enemy.type === 'boss') {
+      Game.bossKilled = true
+      Game.stageBossesCleared += 1
+      Meta.bossClears += 1
+      SaveMeta()
+
+      if (Game.stage >= StageData.length) {
+        ClearThreatField()
+        EndRun(true)
+      } else {
+        AdvanceStage()
+      }
+
+      return
+    }
+
+    Game.bossSpawned = Game.enemies.some(entry => entry.type === 'boss' || entry.type === 'miniBoss')
+    if (!Game.bossSpawned) BossPanel.classList.add('hidden')
+  }
+
+  UpdateEnemies = function(dt) {
+    UpdateWaveSpawner(dt)
+
+    for (const enemy of Game.enemies.slice()) {
+      const statusMult = UpdateEnemyStatus(enemy, dt)
+
+      if (enemy.hp <= 0) {
+        KillEnemy(enemy, 'dot')
+        continue
+      }
+
+      if (enemy.type === 'boss' || enemy.type === 'miniBoss') {
+        UpdateBoss(enemy, dt * statusMult)
+        continue
+      }
+
+      const ai = enemy.aiLevel || enemy.stage || 1
+      const dist = Dist(enemy.x, enemy.y, Player.x, Player.y)
+      const angle = Math.atan2(Player.y - enemy.y, Player.x - enemy.x)
+      enemy.wobble += dt * (enemy.kind === 'skitter' ? 9 : 5)
+      enemy.burstCd -= dt
+      enemy.dashCd -= dt
+
+      if (enemy.kind === 'sentry') {
+        const leadX = Player.x + Player.vx * (ai >= 4 ? 0.4 : 0.22)
+        const leadY = Player.y + Player.vy * (ai >= 4 ? 0.4 : 0.22)
+        const leadAngle = Math.atan2(leadY - enemy.y, leadX - enemy.x)
+        const desired = dist > 280 ? 1 : dist < 170 ? -1 : 0
+        const strafe = ai >= 3 ? enemy.strafeDir * 0.34 : 0
+        enemy.vx = Math.cos(angle + strafe) * enemy.speed * (desired === 0 ? 0.4 : desired)
+        enemy.vy = Math.sin(angle + strafe) * enemy.speed * (desired === 0 ? 0.4 : desired)
+        enemy.shootCd -= dt
+
+        if (enemy.shootCd <= 0) {
+          enemy.shootCd = ai >= 4 ? 1.05 : enemy.elite ? 1.2 : 1.7
+
+          if (ai >= 4) {
+            for (let i = -1; i <= 1; i++) {
+              SpawnEnemyBullet(enemy.x, enemy.y, leadAngle + i * 0.08, 300 + (enemy.elite ? 50 : 0), enemy.damage, 5, enemy.elite ? '#ffd76a' : '#ff8a94')
+            }
+          } else {
+            SpawnEnemyBullet(enemy.x, enemy.y, leadAngle, 280 + (enemy.elite ? 60 : 0), enemy.damage, enemy.elite ? 6 : 5, enemy.elite ? '#ffd76a' : '#ff8a94')
+          }
+        }
+      } else if (enemy.kind === 'skitter') {
+        const strafe = (ai >= 3 ? enemy.strafeDir * 0.5 : 0) + Math.sin(enemy.wobble) * 0.55
+        enemy.vx = Math.cos(angle + strafe) * enemy.speed
+        enemy.vy = Math.sin(angle + strafe) * enemy.speed
+
+        if (ai >= 5 && enemy.dashCd <= 0 && dist < 220) {
+          enemy.dashCd = 4.5
+          enemy.vx = Math.cos(angle) * enemy.speed * 2.8
+          enemy.vy = Math.sin(angle) * enemy.speed * 2.8
+        }
+      } else if (enemy.kind === 'bruiser') {
+        enemy.vx = Math.cos(angle) * enemy.speed * 1.02
+        enemy.vy = Math.sin(angle) * enemy.speed * 1.02
+
+        if (ai >= 4 && enemy.dashCd <= 0 && dist < 260) {
+          enemy.dashCd = 5.2
+          enemy.vx = Math.cos(angle) * enemy.speed * 3.1
+          enemy.vy = Math.sin(angle) * enemy.speed * 3.1
+        }
+      } else {
+        const offset = ai >= 2 ? enemy.strafeDir * 0.42 : 0
+        enemy.vx = Math.cos(angle + offset + Math.sin(enemy.wobble) * 0.18) * enemy.speed
+        enemy.vy = Math.sin(angle + offset + Math.cos(enemy.wobble) * 0.12) * enemy.speed
+      }
+
+      enemy.x += enemy.vx * dt * statusMult
+      enemy.y += enemy.vy * dt * statusMult
+
+      if (Dist(enemy.x, enemy.y, Player.x, Player.y) < enemy.r + Player.r) {
+        HitPlayer(enemy.damage)
+      }
+    }
+  }
+
+  UpdateBoss = function(boss, dt) {
+    const stage = boss.stage || Game.stage
+    const stageDef = GetStageDef(stage)
+
+    if (boss.phase === 0) {
+      boss.y += boss.vy * dt
+      if (boss.y >= (boss.type === 'miniBoss' ? 148 : 118)) {
+        boss.phase = 1
+        boss.vy = 0
+      }
+    } else {
+      boss.arc = (boss.arc || 0) + dt
+      const swing = boss.type === 'miniBoss' ? Width * 0.22 : Width * (0.15 + stage * 0.03)
+      const centerY = boss.type === 'miniBoss' ? 150 : 116
+      const targetX = Width * 0.5 + Math.sin(Game.time * (0.52 + stage * 0.07) + boss.arc) * swing
+      const targetY = centerY + Math.sin(Game.time * (1.1 + stage * 0.05)) * (boss.type === 'miniBoss' ? 26 : 18 + stage * 2)
+      boss.x = Lerp(boss.x, targetX, dt * 1.8)
+      boss.y = Lerp(boss.y, targetY, dt * 2)
+      boss.shootCd -= dt
+      boss.patternCd -= dt
+      boss.summonCd -= dt
+      boss.dashCd -= dt
+
+      if (boss.type === 'miniBoss') {
+        if (boss.shootCd <= 0) {
+          boss.shootCd = 1.15
+          const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+          for (let i = -2; i <= 2; i++) {
+            SpawnEnemyBullet(boss.x, boss.y, aim + i * 0.11, 300, boss.damage, 6, stageDef.glow)
+          }
+        }
+
+        if (boss.patternCd <= 0) {
+          boss.patternCd = 3.2
+          for (let i = 0; i < 10; i++) {
+            const angle = (Math.PI * 2 * i) / 10 + Game.time * 0.4
+            SpawnEnemyBullet(boss.x, boss.y, angle, 210, boss.damage * 0.8, 5, stageDef.haze)
+          }
+        }
+
+        if (boss.dashCd <= 0) {
+          boss.dashCd = 4.8
+          const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+          boss.x += Math.cos(aim) * 64
+          boss.y += Math.sin(aim) * 40
+        }
+      } else {
+        if (boss.summonCd <= 0) {
+          boss.summonCd = Math.max(2.1, 4.8 - stage * 0.28)
+          const supportCount = 2 + (stage >= 3 ? 1 : 0) + (boss.hp < boss.maxHp * 0.45 ? 1 : 0)
+          for (let i = 0; i < supportCount; i++) {
+            const kind = stage >= 4 && Math.random() < 0.36 ? 'bruiser' : Math.random() < 0.5 ? 'skitter' : 'drifter'
+            SpawnEnemy(kind, stage >= 5 && Math.random() < 0.22, boss.x + Math.random() * 180 - 90, boss.y + Math.random() * 60 - 20, { stage, wave: Game.wave })
+          }
+        }
+
+        if (stage === 1) {
+          if (boss.shootCd <= 0) {
+            boss.shootCd = boss.hp < boss.maxHp * 0.45 ? 1.0 : 1.35
+            const count = boss.hp < boss.maxHp * 0.45 ? 16 : 12
+            for (let i = 0; i < count; i++) {
+              const angle = Game.time * 0.6 + (Math.PI * 2 * i) / count
+              SpawnEnemyBullet(boss.x, boss.y, angle, 230, boss.damage, 5, stageDef.glow)
+            }
+          }
+
+          if (boss.patternCd <= 0) {
+            boss.patternCd = 3.6
+            const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+            for (let i = -3; i <= 3; i++) {
+              SpawnEnemyBullet(boss.x, boss.y, aim + i * 0.09, 320, boss.damage + 2, 6, stageDef.haze)
+            }
+          }
+        } else if (stage === 2) {
+          if (boss.shootCd <= 0) {
+            boss.shootCd = 1.0
+            for (let i = 0; i < 14; i++) {
+              const angle = Game.time * 1.2 + (Math.PI * 2 * i) / 14
+              SpawnEnemyBullet(boss.x, boss.y, angle, 250, boss.damage, 5, i % 2 === 0 ? stageDef.glow : stageDef.haze)
+            }
+          }
+
+          if (boss.patternCd <= 0) {
+            boss.patternCd = 3.1
+            const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+            for (const side of [-1, 1]) {
+              for (let i = -2; i <= 2; i++) {
+                SpawnEnemyBullet(boss.x, boss.y, aim + side * 0.22 + i * 0.07, 330, boss.damage + 3, 6, stageDef.glow)
+              }
+            }
+          }
+        } else if (stage === 3) {
+          if (boss.shootCd <= 0) {
+            boss.shootCd = 1.15
+            const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+            for (let i = -4; i <= 4; i++) {
+              SpawnEnemyBullet(boss.x, boss.y, aim + i * 0.11, 250, boss.damage, 6, stageDef.glow)
+            }
+          }
+
+          if (boss.patternCd <= 0) {
+            boss.patternCd = 3.8
+            for (let i = 0; i < 18; i++) {
+              const angle = (Math.PI * 2 * i) / 18
+              SpawnEnemyBullet(boss.x, boss.y, angle, 190, boss.damage * 0.9, 5, stageDef.haze)
+            }
+          }
+        } else if (stage === 4) {
+          if (boss.shootCd <= 0) {
+            boss.shootCd = 0.92
+            const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+            for (let i = -2; i <= 2; i++) {
+              SpawnEnemyBullet(boss.x, boss.y, aim + i * 0.14, 360, boss.damage + 4, 7, stageDef.glow)
+            }
+          }
+
+          if (boss.dashCd <= 0) {
+            boss.dashCd = 4.4
+            boss.x = Math.max(150, Math.min(Width - 150, Player.x + Math.random() * 440 - 220))
+            boss.y = 120 + Math.random() * 50 - 10
+            for (let i = 0; i < 10; i++) {
+              const angle = (Math.PI * 2 * i) / 10
+              SpawnEnemyBullet(boss.x, boss.y, angle, 250, boss.damage, 5, stageDef.haze)
+            }
+          }
+        } else {
+          if (boss.shootCd <= 0) {
+            boss.shootCd = 0.86
+            for (let i = 0; i < 20; i++) {
+              const angle = Game.time * 1.5 + (Math.PI * 2 * i) / 20
+              SpawnEnemyBullet(boss.x, boss.y, angle, 270, boss.damage + 5, 5, i % 2 === 0 ? stageDef.glow : stageDef.haze)
+            }
+          }
+
+          if (boss.patternCd <= 0) {
+            boss.patternCd = 3.2
+            boss.x = Math.max(180, Math.min(Width - 180, Math.random() * (Width - 360) + 180))
+            const aim = Math.atan2(Player.y - boss.y, Player.x - boss.x)
+            for (let lane = -1; lane <= 1; lane++) {
+              for (let i = -2; i <= 2; i++) {
+                SpawnEnemyBullet(boss.x, boss.y, aim + lane * 0.22 + i * 0.06, 360, boss.damage + 6, 6, stageDef.glow)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (Dist(boss.x, boss.y, Player.x, Player.y) < boss.r + Player.r) {
+      HitPlayer(boss.damage)
+    }
+
+    BossNameText.textContent = boss.name
+    BossHpText.textContent = Math.max(0, Math.floor(boss.hp)) + ' / ' + Math.floor(boss.maxHp)
+    BossFill.style.transform = `scaleX(${Clamp(boss.hp / boss.maxHp, 0, 1)})`
+    BossPanel.classList.remove('hidden')
+  }
+
+  UpdateHud = function() {
+    const classState = GetActiveClassState()
+    const stageDef = GetStageDef(Game.stage)
+    const activeBoss = Game.enemies.find(enemy => enemy.type === 'boss' || enemy.type === 'miniBoss')
+
+    HpText.textContent = Math.ceil(Player.hp) + ' / ' + Math.ceil(Player.maxHp)
+    ArmorText.textContent = Math.floor(Player.stats.armor) + ' Armor'
+    HpFill.style.transform = `scaleX(${Clamp(Player.hp / Player.maxHp, 0, 1)})`
+    ShieldFill.style.transform = `scaleX(${Player.maxShield > 0 ? Clamp(Player.shield / Player.maxShield, 0, 1) : 0})`
+    LevelText.textContent = Game.level
+    XpText.textContent = Math.floor(Game.xp) + ' / ' + Game.nextXp
+    XpFill.style.transform = `scaleX(${Clamp(Game.xp / Game.nextXp, 0, 1)})`
+    TimeText.textContent = FormatTime(Game.time)
+    ScoreText.textContent = Math.floor(Game.score)
+    DashText.textContent = Player.dashCd > 0 ? Player.dashCd.toFixed(1) + 's' : 'Ready'
+    KillText.textContent = Game.kills
+    ClassText.textContent = classState.name
+
+    if (Game.mode === 'playing') {
+      if (Game.waveState === 'intermission') {
+        GoalText.textContent = GetStageDef(Game.stage).name + ' • next wave in ' + Math.max(0, Game.waveCooldown).toFixed(1) + 's'
+      } else if (Game.waveType === 'boss' || activeBoss?.type === 'boss') {
+        GoalText.textContent = GetStageDef(Game.stage).name + ' • boss wave 50'
+      } else if (Game.waveType === 'mini' || activeBoss?.type === 'miniBoss') {
+        GoalText.textContent = GetStageDef(Game.stage).name + ' • miniboss wave ' + Game.wave
+      } else {
+        GoalText.textContent = GetStageDef(Game.stage).name + ' • wave ' + Math.max(Game.wave, 1) + ' / 50'
+      }
+
+      RunTip.textContent = TouchEnabled ? 'Drag to move • Tap Boost' : 'WASD to move • Space to Boost'
+    }
+
+    BossPanel.classList.toggle('hidden', !activeBoss)
+  }
+
+  DrawBackground = function() {
+    const stage = GetStageDef(Game.stage)
+    const gradient = Ctx.createLinearGradient(0, 0, 0, Height)
+    gradient.addColorStop(0, stage.top)
+    gradient.addColorStop(1, stage.bottom)
+    Ctx.fillStyle = gradient
+    Ctx.fillRect(0, 0, Width, Height)
+
+    const orbX = Width * (0.72 - (Game.stage - 1) * 0.04)
+    const orbY = Height * (0.16 + ((Game.stage - 1) % 2) * 0.03)
+    Ctx.globalAlpha = 0.18
+    Ctx.fillStyle = stage.haze
+    Ctx.beginPath()
+    Ctx.arc(orbX, orbY, 170 + Game.stage * 10, 0, Math.PI * 2)
+    Ctx.fill()
+    Ctx.globalAlpha = 0.36
+    Ctx.fillStyle = stage.glow
+    Ctx.beginPath()
+    Ctx.arc(orbX, orbY, 88 + Game.stage * 4, 0, Math.PI * 2)
+    Ctx.fill()
+    Ctx.globalAlpha = 0.14
+    Ctx.fillStyle = stage.mist
+    Ctx.fillRect(0, Height * 0.62, Width, Height * 0.38)
+
+    for (const star of Game.stars) {
+      Ctx.globalAlpha = star.alpha
+      Ctx.fillStyle = '#dbe7ff'
+      Ctx.beginPath()
+      Ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+      Ctx.fill()
+    }
+
+    Ctx.globalAlpha = 1
+    Ctx.strokeStyle = stage.grid
+    Ctx.lineWidth = 1
+
+    for (let x = 0; x < Width; x += 60) {
+      Ctx.beginPath()
+      Ctx.moveTo(x, 0)
+      Ctx.lineTo(x, Height)
+      Ctx.stroke()
+    }
+
+    for (let y = 0; y < Height; y += 60) {
+      Ctx.beginPath()
+      Ctx.moveTo(0, y)
+      Ctx.lineTo(Width, y)
+      Ctx.stroke()
+    }
+  }
+
+  Draw = function() {
+    Ctx.setTransform(1, 0, 0, 1, 0, 0)
+    Ctx.clearRect(0, 0, Canvas.width, Canvas.height)
+    Ctx.fillStyle = '#02050c'
+    Ctx.fillRect(0, 0, Canvas.width, Canvas.height)
+    Ctx.setTransform(DPR * FitScale, 0, 0, DPR * FitScale, FitOffsetX * DPR, FitOffsetY * DPR)
+    DrawBackground()
+    DrawHazards()
+    DrawGems()
+    DrawBullets()
+    DrawEnemies()
+    DrawPlayer()
+    DrawParticlesAndFloaters()
+  }
+
+  function UpdateMobileHud() {
+    const active = TouchEnabled && Game.mode === 'playing' && MenuOverlay.classList.contains('hidden') && TalentOverlay.style.display !== 'grid'
+    mobileHud.classList.toggle('hidden', !active)
+  }
+
+  UpdateControlsPrompt = function() {
+    ControlsPrompt.classList.toggle('hidden', TouchEnabled || !(Game.mode === 'playing' && Game.controlsTimer > 0))
+    UpdateMobileHud()
+  }
+
+  const TouchState = {
+    pointerId: null,
+    centerX: 0,
+    centerY: 0,
+  }
+
+  function SetTouchVector(dx, dy) {
+    const radius = 42
+    const mag = Math.hypot(dx, dy) || 1
+    const clamped = Math.min(radius, mag)
+    const nx = (dx / mag) * clamped / radius
+    const ny = (dy / mag) * clamped / radius
+    Input.left = nx < -0.28
+    Input.right = nx > 0.28
+    Input.up = ny < -0.28
+    Input.down = ny > 0.28
+    if (TouchThumb) {
+      TouchThumb.style.transform = `translate(calc(-50% + ${nx * 34}px), calc(-50% + ${ny * 34}px))`
+    }
+  }
+
+  function ResetTouchVector() {
+    TouchState.pointerId = null
+    Input.left = false
+    Input.right = false
+    Input.up = false
+    Input.down = false
+    if (TouchThumb) {
+      TouchThumb.style.transform = 'translate(-50%, -50%)'
+    }
+  }
+
+  TouchStick?.addEventListener('pointerdown', event => {
+    if (!TouchEnabled) return
+    event.preventDefault()
+    const rect = TouchStick.getBoundingClientRect()
+    TouchState.pointerId = event.pointerId
+    TouchState.centerX = rect.left + rect.width * 0.5
+    TouchState.centerY = rect.top + rect.height * 0.5
+    SetTouchVector(event.clientX - TouchState.centerX, event.clientY - TouchState.centerY)
+  })
+
+  window.addEventListener('pointermove', event => {
+    if (!TouchEnabled || event.pointerId !== TouchState.pointerId) return
+    event.preventDefault()
+    SetTouchVector(event.clientX - TouchState.centerX, event.clientY - TouchState.centerY)
+  }, { passive: false })
+
+  window.addEventListener('pointerup', event => {
+    if (event.pointerId === TouchState.pointerId) {
+      ResetTouchVector()
+    }
+  })
+
+  window.addEventListener('blur', ResetTouchVector)
+
+  TouchDash?.addEventListener('pointerdown', event => {
+    if (!TouchEnabled) return
+    event.preventDefault()
+    TriggerDash()
+  })
+
+  window.addEventListener('keydown', event => {
+    if (event.code === 'ControlLeft' || event.code === 'ControlRight') {
+      event.stopImmediatePropagation()
+    }
+  }, true)
+
+  StartButton.addEventListener('click', event => {
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    ResetRun()
+  }, true)
+
+  RenderClasses()
+  RenderShop()
+  UpdateMenuSummary()
+  Resize()
+  BuildStarfield()
+  UpdateHud()
+  UpdateControlsPrompt()
+})()
+</script>
+
 </body>
 </html>
