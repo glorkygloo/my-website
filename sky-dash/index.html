@@ -6762,6 +6762,818 @@ requestAnimationFrame(Loop)
   }
 
 
+  /* Rev4 patch: fix wave flow, simplify HUD/menu, talent dock, audio settings, scaled XP gems */
+  const Rev4Style = document.createElement('style')
+  Rev4Style.textContent = `
+    .topbar {
+      position: absolute;
+      inset: 0;
+      display: block;
+      pointer-events: none;
+    }
+
+    .topbar > .panel.statsPanel:first-child {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      width: min(560px, calc(100vw - 140px));
+      transform: translateX(-50%);
+      padding: 12px 16px 14px;
+      border-radius: 18px;
+      background: rgba(7, 12, 26, 0.84);
+      box-shadow: 0 14px 34px rgba(0,0,0,0.32);
+    }
+
+    .topbar > .panel.statsPanel:first-child .big {
+      font-size: 16px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .topbar > .panel.statsPanel:first-child .row:first-child {
+      align-items: end;
+      margin-bottom: 8px;
+    }
+
+    .topbar > .panel.statsPanel:first-child .row:first-child > div:first-child,
+    .topbar > .panel.statsPanel:first-child .row[style] > div {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .topbar > .panel.statsPanel:first-child .meter {
+      height: 12px;
+      margin-top: 6px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .topbar > .panel.statsPanel:first-child .meter:nth-of-type(2) {
+      height: 8px;
+      margin-top: 4px;
+    }
+
+    .topbar > .panel.statsPanel:first-child .row[style] {
+      margin-top: 12px !important;
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .topbar > .panel.statsPanel:first-child #levelText,
+    .topbar > .panel.statsPanel:first-child #xpText {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .topbar > .panel.statsPanel:nth-child(2),
+    .topbar .rightStack > .panel:not(#bossPanel) {
+      display: none !important;
+    }
+
+    .topbar .rightStack {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: min(420px, calc(100vw - 32px));
+    }
+
+    #bossPanel {
+      padding: 12px 14px;
+      border-radius: 18px;
+    }
+
+    #bossPanel .big {
+      font-size: 20px;
+    }
+
+    #ownedPanel {
+      position: absolute;
+      top: 50%;
+      right: 16px;
+      left: auto;
+      bottom: auto;
+      transform: translateY(-50%);
+      width: 74px;
+      max-height: min(72vh, 640px);
+      padding: 10px 8px 10px;
+      overflow: visible;
+      pointer-events: auto;
+      transition: width 0.18s ease;
+      background: rgba(8, 14, 30, 0.84);
+    }
+
+    #ownedPanel.rev-open {
+      width: 286px;
+    }
+
+    #ownedPanel .row {
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    #ownedPanel .row > .tiny:first-child {
+      display: none;
+    }
+
+    #talentCountText {
+      font-size: 10px;
+    }
+
+    #ownedList {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      max-height: calc(min(72vh, 640px) - 44px);
+      padding-right: 2px;
+    }
+
+    #ownedPanel.rev-open #ownedList {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .revTalentToggle {
+      position: absolute;
+      left: -20px;
+      top: calc(50% - 20px);
+      width: 22px;
+      height: 40px;
+      border-radius: 12px 0 0 12px;
+      border: 1px solid var(--line);
+      background: rgba(10, 16, 34, 0.92);
+      color: var(--text);
+      cursor: pointer;
+      pointer-events: auto;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .ownedTalentIcon {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      display: grid;
+      place-items: center;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text);
+      pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .ownedTalentIcon .glyph {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #0a1328;
+      background: linear-gradient(135deg, #dfe7ff, #79e7ff);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.26);
+    }
+
+    .ownedTalentIcon[data-rarity="uncommon"] .glyph { background: linear-gradient(135deg, #c5ffd8, #73ffc2); }
+    .ownedTalentIcon[data-rarity="rare"] .glyph { background: linear-gradient(135deg, #ffe8ad, #ffd76a); }
+    .ownedTalentIcon[data-rarity="keystone"] .glyph { background: linear-gradient(135deg, #ffc6ff, #f27dff); }
+    .ownedTalentIcon[data-rarity="evolved"] .glyph { background: linear-gradient(135deg, #d5d3ff, #9e7bff); color: #f7f8ff; }
+
+    .ownedTalentIcon .stack {
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(5,10,20,0.86);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ownedTalentIcon .label {
+      display: none;
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      font-size: 10px;
+      line-height: 1.15;
+      font-weight: 700;
+      text-align: left;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+
+    #ownedPanel.rev-open .ownedTalentIcon .label {
+      display: block;
+    }
+
+    #ownedPanel.rev-open .ownedTalentIcon .glyph {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+    }
+
+    .revTalentTooltip {
+      position: absolute;
+      min-width: 220px;
+      max-width: 320px;
+      padding: 12px 12px 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(8, 14, 30, 0.96);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 60;
+    }
+
+    .revTalentTooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .revTalentTooltipTitle { font-size: 15px; font-weight: 900; }
+    .revTalentTooltipMeta { margin-top: 4px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .revTalentTooltipText { margin-top: 8px; color: #d7e2ff; font-size: 13px; line-height: 1.45; }
+
+    .revCornerHud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: grid;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(8, 14, 30, 0.76);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      min-width: 208px;
+    }
+
+    .revCornerHud .line1 {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .revCornerHud .line2,
+    .revCornerHud .line3 {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .revCornerHud .line3 {
+      color: #dbe7ff;
+      font-weight: 600;
+    }
+
+    .menuRunLayout {
+      grid-template-columns: 1fr 320px;
+      align-items: start;
+    }
+
+    .menuSideCol .detailPanel:first-child,
+    .infoStrip .infoChip:last-child {
+      display: none;
+    }
+
+    .infoStrip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hangarLayout {
+      grid-template-columns: 220px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .shopGrid {
+      max-height: 56vh;
+      overflow: auto;
+      padding-right: 4px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .shopItem.compact {
+      padding: 12px 12px 10px;
+      border-radius: 16px;
+      min-height: 0;
+    }
+
+    .shopItem.compact .shopTitle {
+      font-size: 15px;
+    }
+
+    .shopItem.compact .shopMini {
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 8px;
+      color: #d7e2ff;
+    }
+
+    .talentCard {
+      position: relative;
+      padding-top: 18px;
+      overflow: hidden;
+    }
+
+    .talentName {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .talentIconWrap {
+      display: grid;
+      place-items: center;
+      margin-bottom: 10px;
+    }
+
+    .talentIcon {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: #0a1328;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.24);
+      background: linear-gradient(135deg, #dfe7ff, #79e7ff);
+    }
+
+    .talentCard.uncommon .talentIcon { background: linear-gradient(135deg, #c5ffd8, #73ffc2); }
+    .talentCard.rare .talentIcon { background: linear-gradient(135deg, #ffe8ad, #ffd76a); }
+    .talentCard.keystone .talentIcon { background: linear-gradient(135deg, #ffc6ff, #f27dff); }
+    .talentCard.evolved .talentIcon { background: linear-gradient(135deg, #d5d3ff, #9e7bff); color: #f7f8ff; }
+
+    .talentDesc,
+    .talentMeta {
+      text-align: center;
+    }
+
+    .audioSettingsPanel .settingsActions {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .audioRow {
+      display: grid;
+      grid-template-columns: 64px 1fr 40px;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #dbe7ff;
+    }
+
+    .audioRow input[type="range"] {
+      width: 100%;
+      accent-color: #79e7ff;
+    }
+
+    .audioToggle {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    @media (max-width: 980px) {
+      .menuRunLayout,
+      .hangarLayout {
+        grid-template-columns: 1fr;
+      }
+
+      .shopGrid {
+        grid-template-columns: 1fr;
+        max-height: none;
+      }
+
+      #ownedPanel {
+        right: 10px;
+      }
+
+      .topbar > .panel.statsPanel:first-child {
+        width: min(560px, calc(100vw - 96px));
+      }
+    }
+  `
+  document.head.appendChild(Rev4Style)
+
+  const OverlayRoot = document.querySelector('.overlay')
+  const OwnedPanel = document.getElementById('ownedPanel')
+  const talentToggle = document.createElement('button')
+  talentToggle.type = 'button'
+  talentToggle.className = 'revTalentToggle'
+  talentToggle.textContent = '◀'
+  OwnedPanel.prepend(talentToggle)
+
+  const talentTooltip = document.createElement('div')
+  talentTooltip.className = 'revTalentTooltip'
+  OverlayRoot.appendChild(talentTooltip)
+
+  const cornerHud = document.createElement('div')
+  cornerHud.className = 'revCornerHud hidden'
+  cornerHud.innerHTML = '<div class="line1"></div><div class="line2"></div><div class="line3"></div>'
+  OverlayRoot.appendChild(cornerHud)
+  const RevRunLine1 = cornerHud.children[0]
+  const RevRunLine2 = cornerHud.children[1]
+  const RevRunLine3 = cornerHud.children[2]
+
+  const infoChips = Array.from(document.querySelectorAll('.infoStrip .infoChip'))
+  if (infoChips[1]) {
+    const tiny = infoChips[1].querySelector('.tiny')
+    if (tiny) tiny.textContent = 'Flight Line'
+  }
+  if (infoChips[2]) infoChips[2].remove()
+
+  const sidePanels = Array.from(document.querySelectorAll('.menuSideCol .detailPanel'))
+  if (sidePanels[0]) sidePanels[0].remove()
+
+  const AUDIO_KEY = 'skyDashAudioV2'
+  function LoadAudioPrefs() {
+    try {
+      const data = JSON.parse(localStorage.getItem(AUDIO_KEY) || '{}')
+      return {
+        master: Clamp(Number(data.master ?? 0.82), 0, 1),
+        sfx: Clamp(Number(data.sfx ?? 0.88), 0, 1),
+        music: Clamp(Number(data.music ?? 0.42), 0, 1),
+        musicEnabled: data.musicEnabled !== false,
+      }
+    } catch {
+      return { master: 0.82, sfx: 0.88, music: 0.42, musicEnabled: true }
+    }
+  }
+
+  const AudioPrefs = LoadAudioPrefs()
+
+  function SaveAudioPrefs() {
+    localStorage.setItem(AUDIO_KEY, JSON.stringify(AudioPrefs))
+  }
+
+  const BasePlayTone = PlayTone
+  PlayTone = function(freq = 440, duration = 0.08, type = 'sine', volume = 0.018, startAt = 0, slideTo = null, channel = 'sfx') {
+    const channelVolume = channel === 'music'
+      ? AudioPrefs.master * (AudioPrefs.musicEnabled ? AudioPrefs.music : 0)
+      : AudioPrefs.master * AudioPrefs.sfx
+    BasePlayTone(freq, duration, type, volume * channelVolume, startAt, slideTo)
+  }
+
+  const BasePlayNoise = PlayNoise
+  PlayNoise = function(duration = 0.06, volume = 0.012, startAt = 0, filterFreq = 1200, channel = 'sfx') {
+    const channelVolume = channel === 'music'
+      ? AudioPrefs.master * (AudioPrefs.musicEnabled ? AudioPrefs.music : 0)
+      : AudioPrefs.master * AudioPrefs.sfx
+    BasePlayNoise(duration, volume * channelVolume, startAt, filterFreq)
+  }
+
+  Object.assign(Game, { musicCd: 0, musicStep: 0 })
+
+  const StageMusic = {
+    1: [220, 277.18, 329.63],
+    2: [196, 246.94, 311.13],
+    3: [174.61, 220, 261.63],
+    4: [164.81, 220, 293.66],
+    5: [146.83, 196, 246.94],
+  }
+
+  function UpdateMusic(dt) {
+    if (Game.mode !== 'playing' && MenuOverlay.classList.contains('hidden')) return
+    Game.musicCd -= dt
+    if (Game.musicCd > 0) return
+
+    const chord = StageMusic[Math.max(1, Math.min(StageData.length, Game.stage || 1))] || StageMusic[1]
+    const root = chord[0]
+    const third = chord[1]
+    const fifth = chord[2]
+    const bossing = Game.waveType === 'boss' || Game.waveType === 'mini'
+    const step = Game.musicStep % 4
+
+    PlayTone(root / 2, bossing ? 1.6 : 1.9, bossing ? 'sawtooth' : 'triangle', bossing ? 0.008 : 0.006, 0, root / 2 * 0.94, 'music')
+    PlayTone(step % 2 === 0 ? root : third, 1.05, 'sine', 0.007, 0.06, null, 'music')
+    PlayTone(step < 2 ? fifth : third * 2, 0.55, bossing ? 'square' : 'triangle', 0.005, 0.18, null, 'music')
+    if (bossing) PlayNoise(0.04, 0.0018, 0.1, 1500, 'music')
+
+    Game.musicCd = bossing ? 1.1 : 1.65
+    Game.musicStep += 1
+  }
+
+  const settingsLayout = document.querySelector('.settingsLayout')
+  if (settingsLayout) {
+    const audioPanel = document.createElement('div')
+    audioPanel.className = 'detailPanel audioSettingsPanel'
+    audioPanel.innerHTML = `
+      <div class="tiny">Audio</div>
+      <div class="detailTitle">Sound Mix</div>
+      <div class="detailText">Music is optional. Sound effects and music use separate sliders.</div>
+      <div class="settingsActions">
+        <label class="audioRow"><span>Master</span><input id="audioMaster" type="range" min="0" max="100" step="1"><strong id="audioMasterValue"></strong></label>
+        <label class="audioRow"><span>SFX</span><input id="audioSfx" type="range" min="0" max="100" step="1"><strong id="audioSfxValue"></strong></label>
+        <label class="audioRow"><span>Music</span><input id="audioMusic" type="range" min="0" max="100" step="1"><strong id="audioMusicValue"></strong></label>
+        <div class="audioToggle">
+          <button class="secondary" id="musicToggleButton" type="button"></button>
+        </div>
+      </div>
+    `
+    settingsLayout.appendChild(audioPanel)
+
+    const masterInput = audioPanel.querySelector('#audioMaster')
+    const sfxInput = audioPanel.querySelector('#audioSfx')
+    const musicInput = audioPanel.querySelector('#audioMusic')
+    const masterValue = audioPanel.querySelector('#audioMasterValue')
+    const sfxValue = audioPanel.querySelector('#audioSfxValue')
+    const musicValue = audioPanel.querySelector('#audioMusicValue')
+    const musicToggleButton = audioPanel.querySelector('#musicToggleButton')
+
+    function SyncAudioUi() {
+      masterInput.value = Math.round(AudioPrefs.master * 100)
+      sfxInput.value = Math.round(AudioPrefs.sfx * 100)
+      musicInput.value = Math.round(AudioPrefs.music * 100)
+      masterValue.textContent = Math.round(AudioPrefs.master * 100) + '%'
+      sfxValue.textContent = Math.round(AudioPrefs.sfx * 100) + '%'
+      musicValue.textContent = Math.round(AudioPrefs.music * 100) + '%'
+      musicToggleButton.textContent = AudioPrefs.musicEnabled ? 'Music On' : 'Music Off'
+    }
+
+    masterInput.addEventListener('input', () => { AudioPrefs.master = masterInput.value / 100; SaveAudioPrefs(); SyncAudioUi(); })
+    sfxInput.addEventListener('input', () => { AudioPrefs.sfx = sfxInput.value / 100; SaveAudioPrefs(); SyncAudioUi(); Sfx.waveStart() })
+    musicInput.addEventListener('input', () => { AudioPrefs.music = musicInput.value / 100; SaveAudioPrefs(); SyncAudioUi(); })
+    musicToggleButton.addEventListener('click', () => { AudioPrefs.musicEnabled = !AudioPrefs.musicEnabled; SaveAudioPrefs(); SyncAudioUi(); })
+    SyncAudioUi()
+  }
+
+  function TalentGlyphText(talent) {
+    const caps = (talent.name.match(/[A-Z]/g) || []).slice(0, 2).join('')
+    if (caps.length >= 2) return caps
+    return talent.name.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || talent.name.slice(0, 2).toUpperCase()
+  }
+
+  function PositionTalentTooltip(x, y) {
+    const rect = talentTooltip.getBoundingClientRect()
+    const pad = 14
+    let left = x - rect.width - 16
+    if (left < pad) left = x + 18
+    let top = Math.min(window.innerHeight - rect.height - pad, y - rect.height * 0.5)
+    if (top < pad) top = pad
+    talentTooltip.style.left = left + 'px'
+    talentTooltip.style.top = top + 'px'
+  }
+
+  function ShowTalentTooltip(talent, amount, x, y) {
+    talentTooltip.innerHTML = `
+      <div class="revTalentTooltipTitle">${talent.name}${amount > 1 ? ' x' + amount : ''}</div>
+      <div class="revTalentTooltipMeta">${talent.rarity}</div>
+      <div class="revTalentTooltipText">${talent.desc}</div>
+    `
+    talentTooltip.classList.add('show')
+    PositionTalentTooltip(x, y)
+  }
+
+  function HideTalentTooltip() {
+    talentTooltip.classList.remove('show')
+  }
+
+  talentToggle.addEventListener('click', () => {
+    OwnedPanel.classList.toggle('rev-open')
+    talentToggle.textContent = OwnedPanel.classList.contains('rev-open') ? '▶' : '◀'
+    RenderOwnedTalents()
+  })
+
+  RenderOwnedTalents = function() {
+    OwnedList.innerHTML = ''
+    const entries = Object.entries(Game.talentCounts)
+    TalentCountText.textContent = entries.length + ' talents'
+    const sorted = entries.sort((a, b) => TalentById[a[0]].name.localeCompare(TalentById[b[0]].name))
+
+    for (const [id, amount] of sorted) {
+      const talent = TalentById[id]
+      if (!talent) continue
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'ownedTalentIcon'
+      button.dataset.rarity = talent.rarity
+      button.innerHTML = `
+        <div class="glyph">${TalentGlyphText(talent)}</div>
+        ${amount > 1 ? `<div class="stack">${amount}</div>` : ''}
+        <div class="label">${talent.name}</div>
+      `
+      const hover = event => ShowTalentTooltip(talent, amount, event.clientX || window.innerWidth - 120, event.clientY || window.innerHeight * 0.5)
+      button.addEventListener('mouseenter', hover)
+      button.addEventListener('mousemove', hover)
+      button.addEventListener('mouseleave', HideTalentTooltip)
+      button.addEventListener('focus', () => ShowTalentTooltip(talent, amount, window.innerWidth - 140, window.innerHeight * 0.5))
+      button.addEventListener('blur', HideTalentTooltip)
+      OwnedList.appendChild(button)
+    }
+  }
+
+  RenderTalentCards = function() {
+    TalentGrid.innerHTML = ''
+
+    for (const talent of Game.levelOffers) {
+      const card = document.createElement('div')
+      card.className = 'talentCard ' + talent.rarity
+
+      const tags = []
+      tags.push('Owned ' + CountTalent(talent.id) + '/' + talent.max)
+      if (talent.classId) tags.push(ClassById[talent.classId]?.name || talent.classId)
+      if (talent.needsAny) tags.push('Needs ' + talent.needsAny.map(id => TalentById[id]?.name || id).join(' or '))
+      if (talent.requires) tags.push('Evolves from ' + talent.requires.map(r => (TalentById[r.id]?.name || r.id) + ' ' + r.count).join(', '))
+      if (talent.unlocks) tags.push('Opens ' + talent.unlocks.map(id => TalentById[id]?.name || id).join(', '))
+      if (talent.conflicts) tags.push('Locks ' + talent.conflicts.map(id => TalentById[id]?.name || id).join(', '))
+
+      card.innerHTML = `
+        <div class="rarity ${talent.rarity}">${talent.rarity}</div>
+        <div class="talentName">${talent.name}</div>
+        <div class="talentIconWrap"><div class="talentIcon">${TalentGlyphText(talent)}</div></div>
+        <div class="talentDesc">${talent.desc}</div>
+        <div class="talentMeta">${tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+      `
+
+      card.addEventListener('click', () => ChooseTalent(talent.id))
+      TalentGrid.appendChild(card)
+    }
+  }
+
+  const BaseUpdateHud = UpdateHud
+  UpdateHud = function() {
+    BaseUpdateHud()
+    const activeBoss = Game.enemies.find(enemy => enemy.type === 'boss' || enemy.type === 'miniBoss')
+    const stageName = GetStageDef(Game.stage).name
+    const waveLabel = Game.waveType === 'boss' ? 'Boss Wave' : Game.waveType === 'mini' ? 'Mini Boss Wave' : 'Wave ' + Math.max(Game.wave, 1)
+    const dashLabel = Player.dashCd > 0 ? Player.dashCd.toFixed(1) + 's' : 'Ready'
+
+    cornerHud.classList.toggle('hidden', Game.mode !== 'playing' || !MenuOverlay.classList.contains('hidden'))
+    RevRunLine1.textContent = stageName + ' • ' + FormatTime(Game.time)
+    RevRunLine2.textContent = waveLabel + ' • Score ' + Math.floor(Game.score)
+    RevRunLine3.textContent = (activeBoss ? activeBoss.name : GetActiveClassState().name) + ' • Dash ' + dashLabel + ' • ' + Game.kills + ' kills'
+
+    ArmorText.textContent = (Player.maxShield > 0 ? Math.ceil(Player.shield) + ' Shield • ' : '') + Math.floor(Player.stats.armor) + ' Armor'
+    XpText.textContent = Math.floor(Game.xp) + ' / ' + Game.nextXp
+  }
+
+  UpdateWaveSpawner = function(dt) {
+    if (Game.mode !== 'playing') return
+
+    if (Game.waveState === 'pregame') {
+      QueueNextWave(0.45)
+      return
+    }
+
+    if (Game.waveState === 'intermission') {
+      Game.waveCooldown -= dt
+      if (Game.waveCooldown <= 0) StartNextWave()
+      return
+    }
+
+    if (Game.waveState === 'boss') return
+
+    if (Game.waveState === 'spawning') {
+      const plan = GetWavePlan(Game.stage, Game.wave)
+      Game.waveSpawnCd -= dt
+
+      while (Game.waveSpawnsLeft > 0 && Game.waveSpawnCd <= 0) {
+        SpawnWaveEnemy(plan)
+        Game.waveSpawnsLeft -= 1
+        Game.waveSpawnCd += plan.cadence
+      }
+
+      if (Game.waveSpawnsLeft <= 0) {
+        Game.waveState = 'cleanup'
+      }
+    }
+
+    const fieldClear = Game.enemies.length === 0
+    if (Game.waveState === 'cleanup' && Game.waveSpawnsLeft <= 0 && fieldClear && !Game.bossSpawned) {
+      Player.shield = Clamp(Player.shield + 6, 0, Player.maxShield)
+      Player.hp = Clamp(Player.hp + Player.maxHp * 0.04, 0, Player.maxHp)
+      QueueNextWave(Game.wave % 10 === 0 ? 1.8 : 1.05)
+    }
+  }
+
+  const BaseSpawnGemScaled = SpawnGem
+  SpawnGem = function(x, y, value) {
+    BaseSpawnGemScaled(Clamp(x, 18, Width - 18), Clamp(y, 18, Height - 18), value)
+    const gem = Game.gems[Game.gems.length - 1]
+    if (gem) {
+      gem.r = Clamp(5 + Math.sqrt(Math.max(1, value)) * 1.1, 6, 18)
+      gem.value = value
+    }
+  }
+
+  const BaseDrawBackgroundRev4 = DrawBackground
+  DrawBackground = function() {
+    BaseDrawBackgroundRev4()
+    const stage = GetStageDef(Game.stage)
+    Ctx.save()
+    Ctx.lineWidth = 2
+
+    if (stage.id === 'sunbreak') {
+      Ctx.strokeStyle = 'rgba(255, 214, 122, 0.15)'
+      for (let i = 0; i < 5; i++) {
+        const y = Height * (0.18 + i * 0.12) + Math.sin(Game.time * 0.6 + i) * 10
+        Ctx.beginPath()
+        Ctx.moveTo(0, y)
+        for (let x = 0; x <= Width; x += 70) {
+          Ctx.lineTo(x, y + Math.sin(x * 0.012 + Game.time * 1.1 + i) * 14)
+        }
+        Ctx.stroke()
+      }
+    } else if (stage.id === 'stormwake') {
+      Ctx.strokeStyle = 'rgba(121, 231, 255, 0.18)'
+      for (let i = 0; i < 6; i++) {
+        const x = Width * (0.12 + i * 0.14)
+        Ctx.beginPath()
+        Ctx.moveTo(x, 0)
+        Ctx.lineTo(x + Math.sin(Game.time * 2 + i) * 14, Height * 0.34)
+        Ctx.lineTo(x - 10, Height * 0.62)
+        Ctx.stroke()
+      }
+    } else if (stage.id === 'frostline') {
+      Ctx.fillStyle = 'rgba(212, 239, 255, 0.08)'
+      for (let i = 0; i < 8; i++) {
+        const x = Width * (0.08 + i * 0.12)
+        Ctx.beginPath()
+        Ctx.moveTo(x, Height * 0.7)
+        Ctx.lineTo(x + 26, Height * 0.44)
+        Ctx.lineTo(x + 52, Height * 0.7)
+        Ctx.closePath()
+        Ctx.fill()
+      }
+    } else if (stage.id === 'ironrift') {
+      Ctx.fillStyle = 'rgba(255, 143, 108, 0.1)'
+      for (let i = 0; i < 7; i++) {
+        const x = Width * (i / 6)
+        Ctx.fillRect(x, Height * 0.76 + Math.sin(Game.time + i) * 8, 36, Height * 0.24)
+      }
+    } else {
+      Ctx.strokeStyle = 'rgba(177, 149, 255, 0.18)'
+      for (let i = 0; i < 3; i++) {
+        Ctx.beginPath()
+        Ctx.arc(Width * (0.3 + i * 0.2), Height * (0.26 + i * 0.08), 64 + i * 28 + Math.sin(Game.time + i) * 6, 0, Math.PI * 2)
+        Ctx.stroke()
+      }
+    }
+
+    Ctx.restore()
+  }
+
+  const BaseDrawEnemiesRev4 = DrawEnemies
+  DrawEnemies = function() {
+    BaseDrawEnemiesRev4()
+    for (const enemy of Game.enemies) {
+      Ctx.save()
+      Ctx.translate(enemy.x, enemy.y)
+      if (enemy.kind === 'dasher' && enemy.charge > 0) {
+        Ctx.strokeStyle = 'rgba(255, 112, 139, 0.45)'
+        Ctx.lineWidth = 2
+        Ctx.beginPath()
+        Ctx.moveTo(-enemy.r * 2.2, 0)
+        Ctx.lineTo(enemy.r * 2.2, 0)
+        Ctx.stroke()
+      }
+      if (enemy.kind === 'snake') {
+        Ctx.strokeStyle = 'rgba(114, 255, 203, 0.35)'
+        Ctx.beginPath()
+        Ctx.arc(0, 0, enemy.r + 5, 0, Math.PI * 2)
+        Ctx.stroke()
+      }
+      if (enemy.kind === 'lancer') {
+        Ctx.strokeStyle = 'rgba(255, 224, 131, 0.45)'
+        Ctx.beginPath()
+        Ctx.moveTo(0, -enemy.r * 1.5)
+        Ctx.lineTo(0, enemy.r * 1.2)
+        Ctx.stroke()
+      }
+      Ctx.restore()
+    }
+  }
+
+  const BaseUpdateRev4 = Update
+  Update = function(dt) {
+    BaseUpdateRev4(dt)
+    UpdateMusic(dt)
+  }
+
+
+
   RenderClasses()
   RenderShop()
   UpdateMenuSummary()
