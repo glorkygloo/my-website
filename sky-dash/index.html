@@ -1095,6 +1095,55 @@ const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1))
 const SAVE_KEY = 'skyDashV3Meta'
 const LEGACY_SAVE_KEYS = ['skyDashV2Meta']
 
+function ReadCookieValue(name) {
+  const target = encodeURIComponent(name) + '='
+  const parts = document.cookie ? document.cookie.split('; ') : []
+
+  for (const part of parts) {
+    if (part.startsWith(target)) {
+      return decodeURIComponent(part.slice(target.length))
+    }
+  }
+
+  return null
+}
+
+function StorageGet(key) {
+  try {
+    const value = StorageGet(key)
+    if (value != null) return value
+  } catch (error) {}
+
+  try {
+    return ReadCookieValue(key)
+  } catch (error) {}
+
+  return null
+}
+
+function StorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value)
+  } catch (error) {}
+
+  try {
+    const safeValue = String(value)
+    if (safeValue.length <= 3500) {
+      document.cookie = encodeURIComponent(key) + '=' + encodeURIComponent(safeValue) + '; path=/; max-age=' + (60 * 60 * 24 * 365 * 2) + '; SameSite=Lax'
+    }
+  } catch (error) {}
+}
+
+function StorageRemove(key) {
+  try {
+    StorageRemove(key)
+  } catch (error) {}
+
+  try {
+    document.cookie = encodeURIComponent(key) + '=; path=/; max-age=0; SameSite=Lax'
+  } catch (error) {}
+}
+
 let Width = 0
 let Height = 0
 let LastTime = 0
@@ -1395,6 +1444,28 @@ function CreateDefaultMeta() {
     totalRuns: 0,
     bossClears: 0,
     selectedClass: 'strider',
+    unlockedFrames: {
+      strider: true,
+      marksman: true,
+      smasher: true,
+      tempest: true,
+      bastion: true,
+      necromancer: false,
+      mage: false,
+      swordsman: false,
+      reaper: false,
+      artificer: false,
+    },
+    clearedStages: {
+      1: false,
+      2: false,
+      3: false,
+      4: false,
+      5: false,
+    },
+    packs: {
+      jjk: { owned: false, enabled: false },
+    },
     shop: {
       vitality: 0,
       arsenal: 0,
@@ -1410,7 +1481,36 @@ function CreateDefaultMeta() {
 
 function NormalizeMeta(data) {
   const base = CreateDefaultMeta()
-  const selectedClass = ClassById[data?.selectedClass] ? data.selectedClass : base.selectedClass
+  const frameIds = Object.keys(base.unlockedFrames)
+  const rawSelectedClass = String(data?.selectedClass || base.selectedClass)
+  const selectedClass = frameIds.includes(rawSelectedClass) ? rawSelectedClass : base.selectedClass
+
+  const unlockedFrames = { ...base.unlockedFrames }
+  for (const id of frameIds) {
+    if (typeof data?.unlockedFrames?.[id] === 'boolean') {
+      unlockedFrames[id] = data.unlockedFrames[id]
+    }
+  }
+
+  const clearedStages = { ...base.clearedStages }
+  for (const stage of Object.keys(clearedStages)) {
+    if (typeof data?.clearedStages?.[stage] === 'boolean') {
+      clearedStages[stage] = data.clearedStages[stage]
+    }
+  }
+
+  const packs = {
+    jjk: { ...base.packs.jjk },
+  }
+
+  if (data?.packs?.jjk) {
+    packs.jjk.owned = !!data.packs.jjk.owned
+    packs.jjk.enabled = !!data.packs.jjk.enabled
+  }
+
+  if (!packs.jjk.owned) {
+    packs.jjk.enabled = false
+  }
 
   return {
     echoes: Number(data?.echoes || 0),
@@ -1418,6 +1518,9 @@ function NormalizeMeta(data) {
     totalRuns: Number(data?.totalRuns || 0),
     bossClears: Number(data?.bossClears || 0),
     selectedClass,
+    unlockedFrames,
+    clearedStages,
+    packs,
     shop: {
       vitality: Number(data?.shop?.vitality || 0),
       arsenal: Number(data?.shop?.arsenal || 0),
@@ -1433,7 +1536,7 @@ function NormalizeMeta(data) {
 
 function LoadMeta() {
   for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
-    const raw = localStorage.getItem(key)
+    const raw = StorageGet(key)
 
     if (!raw) {
       continue
@@ -1450,7 +1553,7 @@ function LoadMeta() {
 }
 
 function SaveMeta() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(Meta))
+  StorageSet(SAVE_KEY, JSON.stringify(Meta))
 }
 
 function OverwriteMeta(source) {
@@ -1649,7 +1752,7 @@ function UpdateMenuSummary() {
 
 function ResetAllSaveData() {
   for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
-    localStorage.removeItem(key)
+    StorageRemove(key)
   }
 
   OverwriteMeta(CreateDefaultMeta())
@@ -6651,8 +6754,8 @@ requestAnimationFrame(Loop)
       card.addEventListener('click', () => SelectClass(classDef.id))
       card.addEventListener('mouseenter', event => ShowClassTooltip(classDef, event.clientX, event.clientY))
       card.addEventListener('mousemove', event => ShowClassTooltip(classDef, event.clientX, event.clientY))
-      card.addEventListener('mouseleave', HideClassTooltip)
-      card.addEventListener('blur', HideClassTooltip)
+      card.addEventListener('mouseleave', Rev5HideClassTooltip)
+      card.addEventListener('blur', Rev5HideClassTooltip)
       ClassGrid.appendChild(card)
     }
   }
@@ -7210,7 +7313,7 @@ requestAnimationFrame(Loop)
   const AUDIO_KEY = 'skyDashAudioV2'
   function LoadAudioPrefs() {
     try {
-      const data = JSON.parse(localStorage.getItem(AUDIO_KEY) || '{}')
+      const data = JSON.parse(StorageGet(AUDIO_KEY) || '{}')
       return {
         master: Clamp(Number(data.master ?? 0.82), 0, 1),
         sfx: Clamp(Number(data.sfx ?? 0.88), 0, 1),
@@ -7225,7 +7328,7 @@ requestAnimationFrame(Loop)
   const AudioPrefs = LoadAudioPrefs()
 
   function SaveAudioPrefs() {
-    localStorage.setItem(AUDIO_KEY, JSON.stringify(AudioPrefs))
+    StorageSet(AUDIO_KEY, JSON.stringify(AudioPrefs))
   }
 
   const BasePlayTone = PlayTone
@@ -7581,6 +7684,2443 @@ requestAnimationFrame(Loop)
   BuildStarfield()
   UpdateHud()
   UpdateControlsPrompt()
+})()
+</script>
+
+
+<style id="rev5PatchStyle">
+  .rev5ClassGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .classCard.rev5 {
+    position: relative;
+    overflow: hidden;
+    min-height: 182px;
+    text-align: left;
+  }
+
+  .classCard.rev5.locked {
+    opacity: 0.82;
+    filter: saturate(0.72);
+  }
+
+  .classCard.rev5 .unlockChip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(8, 12, 24, 0.76);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #dbe7ff;
+  }
+
+  .classCard.rev5.locked .unlockChip {
+    color: #ffd76a;
+  }
+
+  .classCard.rev5 .classPreview {
+    margin-bottom: 10px;
+  }
+
+  .classCard.rev5 .lockVeil {
+    position: absolute;
+    inset: auto 10px 10px 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(7, 10, 22, 0.84);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #cdd8ff;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .classCard.rev5 .lockTitle {
+    color: #ffd76a;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .classPreview.necromancer .previewGlow { background: rgba(124, 255, 185, 0.42); }
+  .classPreview.necromancer .wing { background: rgba(110, 255, 164, 0.72); }
+  .classPreview.necromancer .core { background: linear-gradient(180deg, #effff4, #9dffcb); }
+
+  .classPreview.mage .previewGlow { background: rgba(193, 137, 255, 0.46); }
+  .classPreview.mage .wing { background: rgba(184, 143, 255, 0.74); }
+  .classPreview.mage .core { background: linear-gradient(180deg, #f8f1ff, #b19bff); }
+
+  .classPreview.swordsman .previewGlow { background: rgba(255, 122, 122, 0.42); }
+  .classPreview.swordsman .wing { background: rgba(255, 139, 116, 0.72); }
+  .classPreview.swordsman .core { background: linear-gradient(180deg, #fff2ef, #ffc0a5); }
+
+  .classPreview.reaper .previewGlow { background: rgba(125, 199, 255, 0.44); }
+  .classPreview.reaper .wing { background: rgba(116, 194, 255, 0.72); }
+  .classPreview.reaper .core { background: linear-gradient(180deg, #eef8ff, #89d3ff); }
+
+  .classPreview.artificer .previewGlow { background: rgba(255, 209, 102, 0.44); }
+  .classPreview.artificer .wing { background: rgba(255, 206, 109, 0.74); }
+  .classPreview.artificer .core { background: linear-gradient(180deg, #fff8e2, #ffd76a); }
+
+  .packsLayout {
+    display: grid;
+    gap: 16px;
+  }
+
+  .packsIntro {
+    padding: 16px 18px;
+  }
+
+  .packsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .packCard {
+    position: relative;
+    overflow: hidden;
+    padding: 18px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 28%),
+      linear-gradient(135deg, rgba(15, 22, 48, 0.96), rgba(8, 12, 24, 0.96));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.26);
+  }
+
+  .packCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.04));
+    pointer-events: none;
+  }
+
+  .packCard.jjk {
+    background:
+      radial-gradient(circle at 18% 18%, rgba(80, 207, 255, 0.18), transparent 26%),
+      radial-gradient(circle at 82% 20%, rgba(160, 112, 255, 0.2), transparent 24%),
+      linear-gradient(135deg, rgba(12, 19, 42, 0.98), rgba(18, 11, 34, 0.96));
+  }
+
+  .packHead {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .packName {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 6px;
+  }
+
+  .packMini {
+    color: #b6c3ea;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .packBadge {
+    min-width: 74px;
+    height: 74px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: #f7fbff;
+    background: linear-gradient(135deg, rgba(93, 222, 255, 0.26), rgba(164, 122, 255, 0.34));
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 28px rgba(0,0,0,0.22);
+  }
+
+  .packPrice {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #dce6ff;
+  }
+
+  .packDesc {
+    margin-top: 12px;
+    color: #e9f1ff;
+    line-height: 1.55;
+    font-size: 14px;
+  }
+
+  .packTags {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .packTags span {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: #dce7ff;
+  }
+
+  .packActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .packStatus {
+    margin-top: 10px;
+    color: #b7c6f0;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .talentCard .packStamp {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(10, 14, 28, 0.82);
+    color: #dbe7ff;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1180px) {
+    .rev5ClassGrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .packsGrid,
+    .rev5ClassGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .packsGrid,
+    .rev5ClassGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+<script>
+(() => {
+  const Rev5BaseFrames = ['strider', 'marksman', 'smasher', 'tempest', 'bastion']
+
+  const Rev5FrameUnlocks = {
+    necromancer: 1,
+    mage: 2,
+    swordsman: 3,
+    reaper: 4,
+    artificer: 5,
+  }
+
+  const Rev5Frames = [
+    {
+      id: 'necromancer',
+      name: 'Necromancer',
+      role: 'Summoner',
+      desc: 'Turns dead traffic back onto the field. You keep pressure up by raising fallen hostiles as unstable thralls.',
+      tags: ['Raise Dead', 'Soul Drain', 'Swarm'],
+      tip: 'Necromancer gets stronger as the fight goes long. Chain kills, keep your thralls alive, and snowball the lane.',
+      startText: 'Necromancer raises hostile wreckage into temporary allies, then branches into a lich control line or an all-in carrion rush.',
+      lineText: 'Lich Bloom or Carrion March at Level 5+',
+      effects: { damagePct: -0.06, reviveChance: 0.18, summonCap: 2, lifesteal: 0.01, bulletHueGreen: 1 },
+      branches: [
+        { talentId: 'lichBloom', stage1Name: 'Lich Bloom', stage2Name: 'Crypt Sovereign', requiresId: 'graveMark', requiresCount: 2, stage2Level: 12, stage2Effects: { reviveChance: 0.16, summonCap: 2, sanctuaryAura: 1 } },
+        { talentId: 'carrionMarch', stage1Name: 'Carrion March', stage2Name: 'Ghoul Armada', requiresId: 'corpsePact', requiresCount: 2, stage2Level: 12, stage2Effects: { bloodAura: 1, speedPct: 0.1, thrallDamagePct: 0.28 } },
+      ],
+    },
+    {
+      id: 'mage',
+      name: 'Mage',
+      role: 'Arcane',
+      desc: 'Trades normal shots for directed spell beams and lane control bursts. You carve space open with clean magic lines instead of bullet spread.',
+      tags: ['Beams', 'Arcane', 'Burst'],
+      tip: 'Mage wants angle control. Line up enemies, let beams pierce, and cash in when the field stacks into one lane.',
+      startText: 'Mage fires focused spells instead of standard bullets, then branches into heavy star-lance burn or unstable void prism control.',
+      lineText: 'Star Lance or Void Prism at Level 5+',
+      effects: { magicBeam: 1, damagePct: 0.06, fireRatePct: -0.14, rangePct: 0.18, beamWidth: 1 },
+      branches: [
+        { talentId: 'starLance', stage1Name: 'Star Lance', stage2Name: 'Astral Breaker', requiresId: 'prismFocus', requiresCount: 2, stage2Level: 12, stage2Effects: { beamWidth: 0.7, bossDamagePct: 0.18, crit: 0.08 } },
+        { talentId: 'voidPrism', stage1Name: 'Void Prism', stage2Name: 'Event Horizon', requiresId: 'manaSurge', requiresCount: 2, stage2Level: 12, stage2Effects: { well: 1, storm: 1, beamWidth: 0.5 } },
+      ],
+    },
+    {
+      id: 'swordsman',
+      name: 'Swordsman',
+      role: 'Blade',
+      desc: 'Drops the gun and turns the frame into a close-range cutter. Your dash becomes a lunge that slashes through anything in the lane.',
+      tags: ['Lunge', 'Slash', 'Parry'],
+      tip: 'Swordsman lives on tempo. Cut through packs, stay mobile, and keep your lunge pointed through the densest line.',
+      startText: 'Swordsman replaces standard fire with blade arcs, then branches into deliberate moon-cleaves or a rapid multi-cut dance.',
+      lineText: 'Moon Cleave or Blade Dance at Level 5+',
+      effects: { disablePrimary: 1, swordRange: 124, dashCdPct: -0.16, dashPowerPct: 0.12, damagePct: 0.08, lungeSlash: 1 },
+      branches: [
+        { talentId: 'moonCleave', stage1Name: 'Moon Cleave', stage2Name: 'Crescent Tyrant', requiresId: 'iaidoEdge', requiresCount: 2, stage2Level: 12, stage2Effects: { swordRange: 34, damagePct: 0.18, bossDamagePct: 0.18 } },
+        { talentId: 'bladeDance', stage1Name: 'Blade Dance', stage2Name: 'Flash Step', requiresId: 'guardStep', requiresCount: 2, stage2Level: 12, stage2Effects: { dashCdPct: -0.18, speedPct: 0.14, swordEcho: 1 } },
+      ],
+    },
+    {
+      id: 'reaper',
+      name: 'Reaper',
+      role: 'Execution',
+      desc: 'A ruthless finisher frame built around bleed, omen pressure, and execution windows. Weak targets melt once you mark the lane.',
+      tags: ['Bleed', 'Execute', 'Omen'],
+      tip: 'Reaper wants hurt targets. Keep pressure on the field until enemies dip low, then snowball the entire wave on executes.',
+      startText: 'Reaper hunts finishers. It opens with bleed and omen tools, then branches into hard executes or a wider eclipse zone.',
+      lineText: 'Black Harvest or Grave Eclipse at Level 5+',
+      effects: { bleedChance: 0.22, bleedPower: 0.15, predator: 1, speedPct: 0.06, crit: 0.04 },
+      branches: [
+        { talentId: 'blackHarvest', stage1Name: 'Black Harvest', stage2Name: 'Final Toll', requiresId: 'omenScythe', requiresCount: 2, stage2Level: 12, stage2Effects: { bleedChance: 0.14, bossDamagePct: 0.22, critMult: 0.24 } },
+        { talentId: 'graveEclipse', stage1Name: 'Grave Eclipse', stage2Name: 'Night Parliament', requiresId: 'duskMantle', requiresCount: 2, stage2Level: 12, stage2Effects: { well: 1, bloodAura: 1, damagePct: 0.16 } },
+      ],
+    },
+    {
+      id: 'artificer',
+      name: 'Artificer',
+      role: 'Construct',
+      desc: 'A build-around frame that fills the air with hardware. Drones, mines, and orbitals turn your run into a moving weapons platform.',
+      tags: ['Drones', 'Mines', 'Orbitals'],
+      tip: 'Artificer wins on setup. Give your tools time to work, then keep enemies inside the overlap.',
+      startText: 'Artificer starts with support hardware and branches into a drone nest or a reactor-heavy trap line.',
+      lineText: 'Siege Nest or Reactor King at Level 5+',
+      effects: { drones: 1, orbitals: 1, mineChance: 0.1, bulletSpeedPct: 0.1, damagePct: -0.04 },
+      branches: [
+        { talentId: 'siegeNest', stage1Name: 'Siege Nest', stage2Name: 'Gun Hive', requiresId: 'turretSeed', requiresCount: 2, stage2Level: 12, stage2Effects: { drones: 2, droneDamagePct: 0.22, droneFireRatePct: 0.16 } },
+        { talentId: 'reactorKing', stage1Name: 'Reactor King', stage2Name: 'Core Lattice', requiresId: 'fluxMine', requiresCount: 2, stage2Level: 12, stage2Effects: { orbitals: 2, mineChance: 0.16, contactNova: 1 } },
+      ],
+    },
+  ]
+
+  const Rev5PackDefs = [
+    {
+      id: 'jjk',
+      name: 'Jujutsu Kaisen',
+      badge: 'JJK',
+      cost: 50,
+      desc: 'Adds cursed energy fundamentals, branching cursed techniques, and high-end payoffs like World Cutting Slash and Hollow Purple into the talent pool.',
+      tags: ['Cursed Energy', 'Limitless', 'Shrine', 'Ten Shadows', 'Blood Arts'],
+    },
+  ]
+
+  const Rev5TalentDefs = [
+    { id: 'graveMark', name: 'Grave Mark', desc: 'Raise more enemies and hold them together longer.', classId: 'necromancer', rarity: 'uncommon', max: 2, effects: { reviveChance: 0.12, summonCap: 1 }, unlocks: ['lichBloom'] },
+    { id: 'corpsePact', name: 'Corpse Pact', desc: 'Trade safety for stronger death magic and a draining aura.', classId: 'necromancer', rarity: 'uncommon', max: 2, effects: { bloodAura: 1, lifesteal: 0.02, maxHp: 10 }, unlocks: ['carrionMarch'] },
+    { id: 'boneLantern', name: 'Bone Lantern', desc: 'Thralls burn brighter and drift farther from your hull.', classId: 'necromancer', rarity: 'rare', max: 1, effects: { thrallDamagePct: 0.2, summonCap: 1, rangePct: 0.08 } },
+    { id: 'soulLedger', name: 'Soul Ledger', desc: 'Kills refund hull and sharpen your damage for a moment.', classId: 'necromancer', rarity: 'rare', max: 2, effects: { lifesteal: 0.02, damagePct: 0.08 } },
+    { id: 'lichBloom', name: 'Lich Bloom', desc: 'Commit to the controlled line. Raised enemies last longer and your recovery stabilizes behind them.', classId: 'necromancer', rarity: 'evolved', max: 1, effects: { reviveChance: 0.18, summonCap: 2, sanctuaryAura: 1 }, requires: [{ id: 'graveMark', count: 1 }], conflicts: ['carrionMarch'] },
+    { id: 'carrionMarch', name: 'Carrion March', desc: 'Commit to an aggressive swarm. Your undead rush harder and your aura keeps chewing the lane.', classId: 'necromancer', rarity: 'evolved', max: 1, effects: { bloodAura: 1, speedPct: 0.12, thrallDamagePct: 0.32 }, requires: [{ id: 'corpsePact', count: 1 }], conflicts: ['lichBloom'] },
+
+    { id: 'prismFocus', name: 'Prism Focus', desc: 'Arcane beams tighten up and hit harder.', classId: 'mage', rarity: 'uncommon', max: 2, effects: { damagePct: 0.1, beamWidth: 0.35, crit: 0.04 }, unlocks: ['starLance'] },
+    { id: 'manaSurge', name: 'Mana Surge', desc: 'Spell cycling rises and your beam range deepens.', classId: 'mage', rarity: 'uncommon', max: 2, effects: { fireRatePct: 0.08, rangePct: 0.14, beamWidth: 0.15 }, unlocks: ['voidPrism'] },
+    { id: 'riftBeam', name: 'Rift Beam', desc: 'Arcane beams pierce deeper into clustered targets.', classId: 'mage', rarity: 'rare', max: 2, effects: { pierce: 1, beamWidth: 0.22, bossDamagePct: 0.08 } },
+    { id: 'astralBattery', name: 'Astral Battery', desc: 'Spell hits call down extra arc sparks into the lane.', classId: 'mage', rarity: 'rare', max: 1, effects: { storm: 1, chainChance: 0.1 } },
+    { id: 'starLance', name: 'Star Lance', desc: 'Commit to focused pierce damage and heavier boss beams.', classId: 'mage', rarity: 'evolved', max: 1, effects: { beamWidth: 0.5, bossDamagePct: 0.18, crit: 0.08 }, requires: [{ id: 'prismFocus', count: 1 }], conflicts: ['voidPrism'] },
+    { id: 'voidPrism', name: 'Void Prism', desc: 'Commit to unstable control magic that drags targets into your beam line.', classId: 'mage', rarity: 'evolved', max: 1, effects: { well: 1, storm: 1, beamWidth: 0.4 }, requires: [{ id: 'manaSurge', count: 1 }], conflicts: ['starLance'] },
+
+    { id: 'iaidoEdge', name: 'Iaido Edge', desc: 'Blade arcs cut farther and punish clean approach lines.', classId: 'swordsman', rarity: 'uncommon', max: 2, effects: { swordRange: 20, damagePct: 0.1, crit: 0.04 }, unlocks: ['moonCleave'] },
+    { id: 'guardStep', name: 'Guard Step', desc: 'Your lunge resets faster and you recover cleaner after each pass.', classId: 'swordsman', rarity: 'uncommon', max: 2, effects: { dashCdPct: -0.08, dashInvuln: 0.05, dodgeChance: 0.05 }, unlocks: ['bladeDance'] },
+    { id: 'windCut', name: 'Wind Cut', desc: 'Blade arcs throw a thin wave through the lane.', classId: 'swordsman', rarity: 'rare', max: 1, effects: { swordWave: 1, damagePct: 0.08 } },
+    { id: 'crimsonEdge', name: 'Crimson Edge', desc: 'Each close slash opens bleed on anything you cut through.', classId: 'swordsman', rarity: 'rare', max: 2, effects: { bleedChance: 0.12, bleedPower: 0.12 } },
+    { id: 'moonCleave', name: 'Moon Cleave', desc: 'Commit to slower, heavier cuts that punish elites and bosses.', classId: 'swordsman', rarity: 'evolved', max: 1, effects: { swordRange: 28, damagePct: 0.18, bossDamagePct: 0.18 }, requires: [{ id: 'iaidoEdge', count: 1 }], conflicts: ['bladeDance'] },
+    { id: 'bladeDance', name: 'Blade Dance', desc: 'Commit to fast repeat cuts and cleaner movement through the pack.', classId: 'swordsman', rarity: 'evolved', max: 1, effects: { dashCdPct: -0.16, speedPct: 0.14, swordEcho: 1 }, requires: [{ id: 'guardStep', count: 1 }], conflicts: ['moonCleave'] },
+
+    { id: 'omenScythe', name: 'Omen Scythe', desc: 'Bleeds get nastier and finishers hit harder.', classId: 'reaper', rarity: 'uncommon', max: 2, effects: { bleedChance: 0.12, bleedPower: 0.16, crit: 0.04 }, unlocks: ['blackHarvest'] },
+    { id: 'duskMantle', name: 'Dusk Mantle', desc: 'Your frame blurs around low-health targets.', classId: 'reaper', rarity: 'uncommon', max: 2, effects: { dodgeChance: 0.05, speedPct: 0.08, bloodPrice: 1 }, unlocks: ['graveEclipse'] },
+    { id: 'soulTax', name: 'Soul Tax', desc: 'Executing marked targets splashes pain into nearby packs.', classId: 'reaper', rarity: 'rare', max: 2, effects: { deathNova: 0.18, damagePct: 0.08 } },
+    { id: 'voidToll', name: 'Void Toll', desc: 'Every finishing hit drags the next cluster inward.', classId: 'reaper', rarity: 'rare', max: 1, effects: { well: 1, bossDamagePct: 0.08 } },
+    { id: 'blackHarvest', name: 'Black Harvest', desc: 'Commit to brutal executes and scythe pressure on marked targets.', classId: 'reaper', rarity: 'evolved', max: 1, effects: { bleedChance: 0.16, bossDamagePct: 0.22, critMult: 0.24 }, requires: [{ id: 'omenScythe', count: 1 }], conflicts: ['graveEclipse'] },
+    { id: 'graveEclipse', name: 'Grave Eclipse', desc: 'Commit to a wider control field that shreds anyone dragged into it.', classId: 'reaper', rarity: 'evolved', max: 1, effects: { well: 1, bloodAura: 1, damagePct: 0.16 }, requires: [{ id: 'duskMantle', count: 1 }], conflicts: ['blackHarvest'] },
+
+    { id: 'turretSeed', name: 'Turret Seed', desc: 'Add another support wing and sharpen its output.', classId: 'artificer', rarity: 'uncommon', max: 2, effects: { drones: 1, droneDamagePct: 0.12 }, unlocks: ['siegeNest'] },
+    { id: 'fluxMine', name: 'Flux Mine', desc: 'Lay more traps and deepen your orbital lattice.', classId: 'artificer', rarity: 'uncommon', max: 2, effects: { mineChance: 0.12, orbitals: 1, orbitalDamagePct: 0.1 }, unlocks: ['reactorKing'] },
+    { id: 'gearLattice', name: 'Gear Lattice', desc: 'Hardware tightens around you and reaches farther out.', classId: 'artificer', rarity: 'rare', max: 2, effects: { orbitalSizePct: 0.18, pickup: 18 } },
+    { id: 'pulseForge', name: 'Pulse Forge', desc: 'Construct hits trigger extra shock pulses.', classId: 'artificer', rarity: 'rare', max: 1, effects: { chainChance: 0.08, chainCount: 1 } },
+    { id: 'siegeNest', name: 'Siege Nest', desc: 'Commit to a drone-heavy line that keeps the lane pinned down.', classId: 'artificer', rarity: 'evolved', max: 1, effects: { drones: 2, droneDamagePct: 0.22, droneFireRatePct: 0.16 }, requires: [{ id: 'turretSeed', count: 1 }], conflicts: ['reactorKing'] },
+    { id: 'reactorKing', name: 'Reactor King', desc: 'Commit to mines, orbitals, and reactor bursts around your hull.', classId: 'artificer', rarity: 'evolved', max: 1, effects: { orbitals: 2, mineChance: 0.16, contactNova: 1 }, requires: [{ id: 'fluxMine', count: 1 }], conflicts: ['siegeNest'] },
+
+    { id: 'cursedEnergy', name: 'Cursed Energy', desc: 'Open a cursed energy line. Hits sharpen with cursed pressure.', packId: 'jjk', rarity: 'common', max: 3, effects: { damagePct: 0.08, crit: 0.02 }, unlocks: ['blackFlash', 'reverseCursedTechnique', 'shrineSpark', 'lapseBlue', 'tenShadows', 'bloodManipulation', 'boogieWoogie', 'ratioTechnique'] },
+    { id: 'blackFlash', name: 'Black Flash', desc: 'Offensive hits can crack with a black flash spike.', packId: 'jjk', rarity: 'rare', max: 2, effects: { blackFlashChance: 0.08, critMult: 0.2 }, needsAny: ['cursedEnergy'] },
+    { id: 'reverseCursedTechnique', name: 'Reverse Cursed Technique', desc: 'Cursed energy flips into recovery and stabilizes your hull.', packId: 'jjk', rarity: 'rare', max: 1, effects: { regen: 0.22, sanctuaryAura: 1 }, needsAny: ['cursedEnergy'] },
+
+    { id: 'shrineSpark', name: 'Shrine Spark', desc: 'Open the Shrine branch and send short cutting slashes into the lane.', packId: 'jjk', rarity: 'uncommon', max: 2, effects: { damagePct: 0.08, shrineSlash: 0.18 }, needsAny: ['cursedEnergy'], unlocks: ['cleaveDrive', 'worldCuttingSlash'] },
+    { id: 'cleaveDrive', name: 'Cleave Drive', desc: 'Cutting attacks dig deeper into elites and bosses.', packId: 'jjk', rarity: 'rare', max: 1, effects: { bossDamagePct: 0.16, ratioStrike: 0.12 }, needsAny: ['shrineSpark'] },
+    { id: 'worldCuttingSlash', name: 'World Cutting Slash', desc: 'Your run gains a devastating dimensional cut on cooldown.', packId: 'jjk', rarity: 'evolved', max: 1, effects: { worldCut: 1, damagePct: 0.16 }, requires: [{ id: 'shrineSpark', count: 1 }, { id: 'cleaveDrive', count: 1 }] },
+
+    { id: 'lapseBlue', name: 'Blue', desc: 'Open the Limitless branch and pull enemies toward collapse points.', packId: 'jjk', rarity: 'uncommon', max: 2, effects: { well: 1, rangePct: 0.1, bluePull: 1 }, needsAny: ['cursedEnergy'], unlocks: ['reversalRed', 'hollowPurple'] },
+    { id: 'reversalRed', name: 'Red', desc: 'Add a violent blast that knocks packs open.', packId: 'jjk', rarity: 'rare', max: 1, effects: { redBlast: 1, damagePct: 0.12, knockback: 0.18 }, needsAny: ['lapseBlue'] },
+    { id: 'hollowPurple', name: 'Hollow Purple', desc: 'Blue and Red converge into a brutal beam pass on cooldown.', packId: 'jjk', rarity: 'evolved', max: 1, effects: { purple: 1, bossDamagePct: 0.24, pierce: 2 }, requires: [{ id: 'lapseBlue', count: 1 }, { id: 'reversalRed', count: 1 }] },
+
+    { id: 'tenShadows', name: 'Ten Shadows', desc: 'Open a shikigami line that adds shadow summons to your run.', packId: 'jjk', rarity: 'uncommon', max: 1, effects: { drones: 1, shadowShikigami: 1 }, needsAny: ['cursedEnergy'], unlocks: ['divineDog', 'nueWing', 'chimeraShadowGarden'] },
+    { id: 'divineDog', name: 'Divine Dog', desc: 'Your shadow wing hunts targets more aggressively.', packId: 'jjk', rarity: 'rare', max: 1, effects: { drones: 1, droneDamagePct: 0.18 }, needsAny: ['tenShadows'] },
+    { id: 'nueWing', name: 'Nue Wing', desc: 'Shadow current crackles overhead and adds a hovering strike line.', packId: 'jjk', rarity: 'rare', max: 1, effects: { orbitals: 1, storm: 1 }, needsAny: ['tenShadows'] },
+    { id: 'chimeraShadowGarden', name: 'Chimera Shadow Garden', desc: 'Your shadows flood the lane with layered summons and drag.', packId: 'jjk', rarity: 'evolved', max: 1, effects: { drones: 1, orbitals: 1, well: 1, shadowGarden: 1 }, requires: [{ id: 'tenShadows', count: 1 }, { id: 'divineDog', count: 1 }, { id: 'nueWing', count: 1 }] },
+
+    { id: 'bloodManipulation', name: 'Blood Manipulation', desc: 'Open a blood arts line that favors piercing pressure and self-buff windows.', packId: 'jjk', rarity: 'uncommon', max: 1, effects: { bleedChance: 0.12, bloodLance: 1 }, needsAny: ['cursedEnergy'], unlocks: ['piercingBlood', 'flowingRedScale'] },
+    { id: 'piercingBlood', name: 'Piercing Blood', desc: 'Fire a sharp blood line through stacked enemies.', packId: 'jjk', rarity: 'rare', max: 1, effects: { bulletSpeedPct: 0.22, crit: 0.08, bloodLance: 1 }, requires: [{ id: 'bloodManipulation', count: 1 }] },
+    { id: 'flowingRedScale', name: 'Flowing Red Scale', desc: 'Blood pressure fuels your speed, rate, and close-range drain.', packId: 'jjk', rarity: 'rare', max: 1, effects: { speedPct: 0.12, fireRatePct: 0.12, bloodAura: 1 }, requires: [{ id: 'bloodManipulation', count: 1 }] },
+
+    { id: 'boogieWoogie', name: 'Boogie Woogie', desc: 'Your dash can swap places with a nearby target instead of just crossing it.', packId: 'jjk', rarity: 'rare', max: 1, effects: { swapStep: 1, dashCdPct: -0.08, dodgeChance: 0.06 }, needsAny: ['cursedEnergy'] },
+    { id: 'ratioTechnique', name: 'Ratio Technique', desc: 'Well-placed hits punish healthy targets harder.', packId: 'jjk', rarity: 'rare', max: 1, effects: { ratioStrike: 0.18, crit: 0.05 }, needsAny: ['cursedEnergy'] },
+  ]
+
+  const Rev5Glyphs = {
+    necromancer: 'NE',
+    mage: 'MG',
+    swordsman: 'SW',
+    reaper: 'RP',
+    artificer: 'AR',
+    cursedEnergy: 'CE',
+    blackFlash: 'BF',
+    reverseCursedTechnique: 'RC',
+    shrineSpark: 'SH',
+    worldCuttingSlash: 'WS',
+    lapseBlue: 'BL',
+    reversalRed: 'RD',
+    hollowPurple: 'HP',
+    tenShadows: 'TS',
+    chimeraShadowGarden: 'CS',
+    bloodManipulation: 'BM',
+    piercingBlood: 'PB',
+    boogieWoogie: 'BW',
+    ratioTechnique: 'RT',
+  }
+
+  function EnsureRev5Meta() {
+    let changed = false
+
+    if (!Meta.unlockedFrames || typeof Meta.unlockedFrames !== 'object') {
+      Meta.unlockedFrames = {}
+      changed = true
+    }
+
+    for (const id of Rev5BaseFrames) {
+      if (!Meta.unlockedFrames[id]) {
+        Meta.unlockedFrames[id] = true
+        changed = true
+      }
+    }
+
+    for (const id of Object.keys(Rev5FrameUnlocks)) {
+      if (typeof Meta.unlockedFrames[id] !== 'boolean') {
+        Meta.unlockedFrames[id] = false
+        changed = true
+      }
+    }
+
+    if (!Meta.clearedStages || typeof Meta.clearedStages !== 'object') {
+      Meta.clearedStages = {}
+      changed = true
+    }
+
+    for (let stage = 1; stage <= 5; stage++) {
+      if (typeof Meta.clearedStages[stage] !== 'boolean') {
+        Meta.clearedStages[stage] = false
+        changed = true
+      }
+    }
+
+    if (!Meta.packs || typeof Meta.packs !== 'object') {
+      Meta.packs = {}
+      changed = true
+    }
+
+    for (const pack of Rev5PackDefs) {
+      if (!Meta.packs[pack.id] || typeof Meta.packs[pack.id] !== 'object') {
+        Meta.packs[pack.id] = { owned: false, enabled: false }
+        changed = true
+      }
+
+      if (typeof Meta.packs[pack.id].owned !== 'boolean') {
+        Meta.packs[pack.id].owned = false
+        changed = true
+      }
+
+      if (typeof Meta.packs[pack.id].enabled !== 'boolean') {
+        Meta.packs[pack.id].enabled = Meta.packs[pack.id].owned
+        changed = true
+      }
+    }
+
+    if (!Meta.unlockedFrames[Meta.selectedClass]) {
+      const firstUnlocked = [...Rev5BaseFrames, ...Object.keys(Rev5FrameUnlocks)].find(id => Meta.unlockedFrames[id]) || 'strider'
+      if (Meta.selectedClass !== firstUnlocked) {
+        Meta.selectedClass = firstUnlocked
+        changed = true
+      }
+    }
+
+    if (changed) {
+      StorageSet(SAVE_KEY, JSON.stringify(Meta))
+    }
+  }
+
+  EnsureRev5Meta()
+
+  const OriginalCreateDefaultMetaRev5 = CreateDefaultMeta
+  CreateDefaultMeta = function() {
+    const data = OriginalCreateDefaultMetaRev5()
+    data.unlockedFrames = {
+      strider: true,
+      marksman: true,
+      smasher: true,
+      tempest: true,
+      bastion: true,
+      necromancer: false,
+      mage: false,
+      swordsman: false,
+      reaper: false,
+      artificer: false,
+    }
+    data.clearedStages = { 1: false, 2: false, 3: false, 4: false, 5: false }
+    data.packs = { jjk: { owned: false, enabled: false } }
+    return data
+  }
+
+  const OriginalNormalizeMetaRev5 = NormalizeMeta
+  NormalizeMeta = function(data) {
+    const fresh = OriginalNormalizeMetaRev5(data)
+    if (!fresh.unlockedFrames) fresh.unlockedFrames = {}
+    if (!fresh.clearedStages) fresh.clearedStages = {}
+    if (!fresh.packs) fresh.packs = {}
+    return CreateDefaultMeta() && Object.assign(CreateDefaultMeta(), fresh, {
+      unlockedFrames: Object.assign(CreateDefaultMeta().unlockedFrames, fresh.unlockedFrames || {}),
+      clearedStages: Object.assign(CreateDefaultMeta().clearedStages, fresh.clearedStages || {}),
+      packs: Object.assign(CreateDefaultMeta().packs, fresh.packs || {}),
+      shop: Object.assign(CreateDefaultMeta().shop, fresh.shop || {}),
+    })
+  }
+
+  const OriginalSaveMetaRev5 = SaveMeta
+  SaveMeta = function() {
+    EnsureRev5Meta()
+    OriginalSaveMetaRev5()
+  }
+
+  const OriginalResetAllSaveDataRev5 = ResetAllSaveData
+  ResetAllSaveData = function() {
+    OriginalResetAllSaveDataRev5()
+    EnsureRev5Meta()
+    RenderPacks()
+    RenderClasses()
+    UpdateMenuSummary()
+  }
+
+  const OriginalOverwriteMetaRev5 = OverwriteMeta
+  OverwriteMeta = function(source) {
+    OriginalOverwriteMetaRev5(source)
+    EnsureRev5Meta()
+  }
+
+  function IsFrameUnlocked(id) {
+    return !!Meta.unlockedFrames?.[id]
+  }
+
+  function FirstUnlockedFrame() {
+    return [...Rev5BaseFrames, ...Object.keys(Rev5FrameUnlocks)].find(id => IsFrameUnlocked(id)) || 'strider'
+  }
+
+  function AddFrame(frame) {
+    if (!ClassById[frame.id]) {
+      ClassDefs.push(frame)
+      ClassById[frame.id] = frame
+    }
+  }
+
+  function AddTalent(talent) {
+    if (!TalentById[talent.id]) {
+      TalentDefs.push(talent)
+      TalentById[talent.id] = talent
+    }
+  }
+
+  Rev5Frames.forEach(AddFrame)
+  Rev5TalentDefs.forEach(AddTalent)
+
+  function PackOwned(id) {
+    return !!Meta.packs?.[id]?.owned
+  }
+
+  function PackEnabled(id) {
+    return !!Meta.packs?.[id]?.owned && !!Meta.packs?.[id]?.enabled
+  }
+
+  function GetPackState(id) {
+    if (!Meta.packs[id]) {
+      Meta.packs[id] = { owned: false, enabled: false }
+    }
+    return Meta.packs[id]
+  }
+
+  function ActiveTalentPoolCount() {
+    return TalentDefs.filter(talent => !talent.packId || PackEnabled(talent.packId)).length
+  }
+
+  function ActivePackCount() {
+    return Rev5PackDefs.filter(pack => PackEnabled(pack.id)).length
+  }
+
+  function PurchasePack(id) {
+    const pack = Rev5PackDefs.find(entry => entry.id === id)
+    if (!pack) return
+
+    const state = GetPackState(id)
+    if (state.owned) return
+    if (Meta.echoes < pack.cost) return
+
+    Meta.echoes -= pack.cost
+    state.owned = true
+    state.enabled = true
+    SaveMeta()
+    RenderPacks()
+    UpdateMenuSummary()
+  }
+
+  function TogglePack(id) {
+    const state = GetPackState(id)
+    if (!state.owned) return
+    state.enabled = !state.enabled
+    SaveMeta()
+    RenderPacks()
+    UpdateMenuSummary()
+  }
+
+  const menuTabsRoot = document.querySelector('.menuTabs')
+  let packsTab = document.querySelector('.menuTab[data-page="packs"]')
+  if (!packsTab && menuTabsRoot) {
+    packsTab = document.createElement('button')
+    packsTab.className = 'menuTab'
+    packsTab.dataset.page = 'packs'
+    packsTab.textContent = 'Packs'
+    const hangarTab = document.querySelector('.menuTab[data-page="hangar"]')
+    if (hangarTab?.nextSibling) {
+      menuTabsRoot.insertBefore(packsTab, hangarTab.nextSibling)
+    } else {
+      menuTabsRoot.appendChild(packsTab)
+    }
+    MenuTabs.push(packsTab)
+    packsTab.addEventListener('click', () => SwitchMenuPage('packs'))
+  }
+
+  let packsPage = document.querySelector('.menuPage[data-page="packs"]')
+  if (!packsPage) {
+    packsPage = document.createElement('div')
+    packsPage.className = 'menuPage'
+    packsPage.dataset.page = 'packs'
+    packsPage.innerHTML = `
+      <div class="packsLayout">
+        <div class="detailPanel packsIntro">
+          <div class="tiny">Packs</div>
+          <div class="detailTitle">Optional Talent Pools</div>
+          <div class="detailText">Unlock extra themed pull sets with Sky Marks, then toggle them on or off before your run. Disabled packs stay purchased, but their talents leave the pool.</div>
+        </div>
+        <div class="packsGrid" id="packsGrid"></div>
+      </div>
+    `
+    const settingsPage = document.querySelector('.menuPage[data-page="settings"]')
+    settingsPage?.parentNode?.insertBefore(packsPage, settingsPage)
+    MenuPages.push(packsPage)
+  }
+
+  const PacksGrid = document.getElementById('packsGrid')
+
+  function RenderPacks() {
+    if (!PacksGrid) return
+    PacksGrid.innerHTML = ''
+
+    for (const pack of Rev5PackDefs) {
+      const state = GetPackState(pack.id)
+      const card = document.createElement('div')
+      card.className = 'packCard ' + pack.id
+
+      const statusText = !state.owned
+        ? 'Locked'
+        : state.enabled
+          ? 'Enabled in talent pool'
+          : 'Owned • currently disabled'
+
+      card.innerHTML = `
+        <div class="packHead">
+          <div>
+            <div class="packMini">Optional Content Pack</div>
+            <div class="packName">${pack.name}</div>
+          </div>
+          <div class="packBadge">${pack.badge}</div>
+        </div>
+        <div class="packPrice">${state.owned ? 'Purchased' : pack.cost + ' Sky Marks'}</div>
+        <div class="packDesc">${pack.desc}</div>
+        <div class="packTags">${pack.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+        <div class="packStatus">${statusText}</div>
+      `
+
+      const actions = document.createElement('div')
+      actions.className = 'packActions'
+
+      const primary = document.createElement('button')
+      primary.type = 'button'
+      primary.className = state.owned ? (state.enabled ? 'primary' : 'secondary') : 'primary'
+      primary.textContent = state.owned ? (state.enabled ? 'Disable Pack' : 'Enable Pack') : 'Unlock Pack'
+      primary.disabled = !state.owned && Meta.echoes < pack.cost
+      primary.addEventListener('click', () => {
+        if (state.owned) {
+          TogglePack(pack.id)
+        } else {
+          PurchasePack(pack.id)
+        }
+      })
+      actions.appendChild(primary)
+
+      if (state.owned) {
+        const secondary = document.createElement('button')
+        secondary.type = 'button'
+        secondary.className = 'secondary'
+        secondary.textContent = state.enabled ? 'Active' : 'Inactive'
+        secondary.disabled = true
+        actions.appendChild(secondary)
+      } else {
+        const secondary = document.createElement('button')
+        secondary.type = 'button'
+        secondary.className = 'secondary'
+        secondary.textContent = 'Need ' + Math.max(0, pack.cost - Meta.echoes) + ' More'
+        secondary.disabled = true
+        actions.appendChild(secondary)
+      }
+
+      card.appendChild(actions)
+      PacksGrid.appendChild(card)
+    }
+  }
+
+  const OriginalSelectClassRev5 = SelectClass
+  SelectClass = function(id) {
+    EnsureRev5Meta()
+    if (!IsFrameUnlocked(id)) {
+      const unlockStage = Rev5FrameUnlocks[id]
+      const frame = ClassById[id]
+      if (frame) {
+        SummaryText.textContent = frame.name + ' unlocks after you clear Stage ' + unlockStage + ' for the first time.'
+      }
+      return
+    }
+    OriginalSelectClassRev5(id)
+  }
+
+  const Rev5ClassTooltipEl = document.getElementById('classTooltip') || (() => {
+    const node = document.createElement('div')
+    node.id = 'classTooltip'
+    node.className = 'classTooltip'
+    document.querySelector('.overlay')?.appendChild(node)
+    return node
+  })()
+
+  function Rev5PositionClassTooltip(x, y) {
+    const rect = Rev5ClassTooltipEl.getBoundingClientRect()
+    const pad = 14
+    let left = Math.min(window.innerWidth - rect.width - pad, x + 18)
+    if (left < pad) left = pad
+    let top = Math.min(window.innerHeight - rect.height - pad, y - rect.height * 0.45)
+    if (top < pad) top = y + 18
+    Rev5ClassTooltipEl.style.left = left + 'px'
+    Rev5ClassTooltipEl.style.top = top + 'px'
+  }
+
+  function Rev5HideClassTooltip() {
+    Rev5ClassTooltipEl.classList.remove('show')
+  }
+
+  function Rev5BuildClassPreview(classId) {
+    return `
+      <div class="classPreview ${classId}">
+        <div class="previewGlow"></div>
+        <div class="previewShip">
+          <span class="wing left"></span>
+          <span class="wing right"></span>
+          <span class="core"></span>
+          <span class="tail"></span>
+        </div>
+      </div>
+    `
+  }
+
+  function Rev5ShowBanner(title, subtitle) {
+    const banner = document.getElementById('waveBanner')
+    const bannerTitle = banner?.querySelector('.waveBannerTitle')
+    const bannerSub = banner?.querySelector('.waveBannerSub')
+
+    if (!banner || !bannerTitle || !bannerSub) {
+      if (Game.mode === 'playing') {
+        SpawnFloater(Player.x, Player.y - 42, title, '#ffd76a')
+      }
+      return
+    }
+
+    bannerTitle.textContent = title
+    bannerSub.textContent = subtitle || ''
+    banner.classList.add('show')
+    clearTimeout(Rev5ShowBanner.timer)
+    Rev5ShowBanner.timer = setTimeout(() => banner.classList.remove('show'), 1600)
+  }
+
+  function ShowFrameTooltip(frameDef, x, y) {
+    const unlockText = IsFrameUnlocked(frameDef.id) ? '' : '<div class="classTooltipRole">Unlocks after Stage ' + Rev5FrameUnlocks[frameDef.id] + '</div>'
+    Rev5ClassTooltipEl.innerHTML = `
+      <div class="classTooltipTitle">${frameDef.name}</div>
+      <div class="classTooltipRole">${frameDef.role}</div>
+      ${unlockText}
+      <div class="classTooltipText">${frameDef.desc}</div>
+      <div class="classTooltipTags">${frameDef.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+    `
+    Rev5ClassTooltipEl.classList.add('show')
+    Rev5PositionClassTooltip(x, y)
+  }
+
+  RenderClasses = function() {
+    ClassGrid.innerHTML = ''
+    ClassGrid.classList.add('rev5ClassGrid')
+    const selectedFrameId = GetSelectedClassId()
+    const ordered = [...Rev5BaseFrames, ...Object.keys(Rev5FrameUnlocks)]
+
+    for (const id of ordered) {
+      const frameDef = ClassById[id]
+      if (!frameDef) continue
+
+      const unlocked = IsFrameUnlocked(id)
+      const selected = selectedFrameId === id && unlocked
+      const card = document.createElement('button')
+      card.type = 'button'
+      card.className = 'classCard compact rev5' + (selected ? ' selected' : '') + (unlocked ? '' : ' locked')
+      card.innerHTML = `
+        <div class="unlockChip">${unlocked ? frameDef.role : 'Stage ' + Rev5FrameUnlocks[id]}</div>
+        ${Rev5BuildClassPreview(frameDef.id)}
+        <div class="classHead">
+          <div>
+            <div class="classRole">${frameDef.role}</div>
+            <div class="className">${frameDef.name}</div>
+          </div>
+        </div>
+        ${unlocked ? '' : `<div class="lockVeil"><div class="lockTitle">Locked Frame</div>Clear Stage ${Rev5FrameUnlocks[id]} to unlock this frame permanently.</div>`}
+      `
+
+      card.addEventListener('click', () => SelectClass(frameDef.id))
+      card.addEventListener('mouseenter', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+      card.addEventListener('mousemove', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+      card.addEventListener('mouseleave', Rev5HideClassTooltip)
+      card.addEventListener('blur', Rev5HideClassTooltip)
+      ClassGrid.appendChild(card)
+    }
+  }
+
+  UpdateMenuSummary = function() {
+    EnsureRev5Meta()
+
+    const frameDef = GetSelectedClassDef()
+    const state = GetActiveClassState()
+    const bestScore = Math.floor(Meta.bestScore || 0)
+    const unlockedExtra = Object.keys(Rev5FrameUnlocks).filter(id => IsFrameUnlocked(id)).length
+
+    SelectedClassName.textContent = frameDef.name
+    SelectedClassLine.textContent = IsFrameUnlocked(frameDef.id) ? frameDef.role : 'Locked Frame'
+    ClassDetailTitle.textContent = frameDef.name
+    ClassDetailText.textContent = frameDef.tip
+    ClassDetailTags.innerHTML = frameDef.tags.map(tag => `<span>${tag}</span>`).join('')
+
+    TalentPoolText.textContent = ActiveTalentPoolCount() + ' Talents • ' + ActivePackCount() + ' Packs'
+    MenuEchoText.textContent = Meta.echoes + ' Sky Marks'
+    MetaStatsText.innerHTML =
+      `Best score <strong>${bestScore}</strong><br>` +
+      `Total runs <strong>${Meta.totalRuns}</strong><br>` +
+      `Stage boss clears <strong>${Meta.bossClears}</strong><br>` +
+      `Unlocked bonus frames <strong>${unlockedExtra} / 5</strong><br>` +
+      `Sky Marks <strong>${Meta.echoes}</strong><br>` +
+      `Active frame <strong>${state.name}</strong>`
+
+    if (!IsFrameUnlocked(frameDef.id)) {
+      SummaryText.textContent = frameDef.name + ' unlocks after Stage ' + Rev5FrameUnlocks[frameDef.id] + '.'
+      StartButton.disabled = true
+      StartButton.textContent = 'Frame Locked'
+      return
+    }
+
+    StartButton.disabled = false
+    StartButton.textContent = 'Start Run'
+
+    if (Game.menuSummary) {
+      SummaryText.textContent = Game.menuSummary
+    } else {
+      const packText = ActivePackCount() > 0 ? ' Active packs: ' + Rev5PackDefs.filter(pack => PackEnabled(pack.id)).map(pack => pack.name).join(', ') + '.' : ''
+      SummaryText.textContent = frameDef.startText + packText
+    }
+  }
+
+  function UnlockFrame(id) {
+    if (!id || IsFrameUnlocked(id)) return
+    Meta.unlockedFrames[id] = true
+    SaveMeta()
+
+    const frame = ClassById[id]
+    if (frame) {
+      Rev5ShowBanner('FRAME UNLOCKED', frame.name.toUpperCase())
+      Game.menuSummary = frame.name + ' unlocked permanently. You can select it from the run menu now.'
+    }
+  }
+
+  function UnlockFrameForStage(stageNumber) {
+    const mapping = {
+      1: 'necromancer',
+      2: 'mage',
+      3: 'swordsman',
+      4: 'reaper',
+      5: 'artificer',
+    }
+
+    const frameId = mapping[stageNumber]
+    if (!frameId) return
+    if (!Meta.clearedStages[stageNumber]) {
+      Meta.clearedStages[stageNumber] = true
+      UnlockFrame(frameId)
+      SaveMeta()
+    }
+  }
+
+  const OriginalAdvanceStageRev5 = AdvanceStage
+  AdvanceStage = function() {
+    UnlockFrameForStage(Game.stage)
+    OriginalAdvanceStageRev5()
+  }
+
+  const OriginalGetShipVisualProfileRev5 = GetShipVisualProfile
+  GetShipVisualProfile = function() {
+    const profile = OriginalGetShipVisualProfileRev5()
+    const frameId = GetSelectedClassId()
+
+    if (frameId === 'necromancer') {
+      profile.accent = '#7dffc3'
+      profile.bullet = '#9effcf'
+      profile.trail = '#73ffc2'
+      profile.hull = 'bastion'
+      profile.halo = true
+    } else if (frameId === 'mage') {
+      profile.accent = '#b89bff'
+      profile.bullet = '#cdb8ff'
+      profile.trail = '#9e7bff'
+      profile.hull = 'marksman'
+      profile.ring = true
+    } else if (frameId === 'swordsman') {
+      profile.accent = '#ffad8f'
+      profile.bullet = '#ffd8b8'
+      profile.trail = '#ff8f6c'
+      profile.hull = 'smasher'
+      profile.bulk = false
+    } else if (frameId === 'reaper') {
+      profile.accent = '#8dd4ff'
+      profile.bullet = '#dff5ff'
+      profile.trail = '#79e7ff'
+      profile.hull = 'strider'
+      profile.ring = true
+    } else if (frameId === 'artificer') {
+      profile.accent = '#ffd76a'
+      profile.bullet = '#ffe9a6'
+      profile.trail = '#ffcf7a'
+      profile.hull = 'bastion'
+      profile.halo = true
+    }
+
+    if (HasTalent('tenShadows') || HasTalent('chimeraShadowGarden')) {
+      profile.trail = '#7469ff'
+      profile.halo = true
+    }
+
+    if (HasTalent('hollowPurple')) {
+      profile.bullet = '#d4b3ff'
+      profile.trail = '#ab8cff'
+      profile.ring = true
+    }
+
+    if (HasTalent('bloodManipulation') || HasTalent('piercingBlood')) {
+      profile.bullet = '#ff7b7b'
+    }
+
+    return profile
+  }
+
+
+  const OriginalRenderTalentCardsRev5 = RenderTalentCards
+  RenderTalentCards = function() {
+    OriginalRenderTalentCardsRev5()
+    for (const card of Array.from(TalentGrid.children)) {
+      const idx = Array.from(TalentGrid.children).indexOf(card)
+      const talent = Game.levelOffers[idx]
+      if (!talent?.packId) continue
+      const stamp = document.createElement('div')
+      stamp.className = 'packStamp'
+      stamp.textContent = talent.packId.toUpperCase()
+      card.appendChild(stamp)
+    }
+  }
+
+  const OriginalCanOfferTalentRev5 = CanOfferTalent
+  CanOfferTalent = function(talent) {
+    if (talent.packId && !PackEnabled(talent.packId)) {
+      return false
+    }
+    return OriginalCanOfferTalentRev5(talent)
+  }
+
+  const OriginalSwitchMenuPageRev5 = SwitchMenuPage
+  SwitchMenuPage = function(page) {
+    OriginalSwitchMenuPageRev5(page)
+    if (page === 'packs') {
+      RenderPacks()
+    }
+  }
+
+  const OriginalPurchaseShopRev5 = PurchaseShop
+  PurchaseShop = function(id) {
+    OriginalPurchaseShopRev5(id)
+    RenderPacks()
+    UpdateMenuSummary()
+  }
+
+  function SegmentDistance(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const lenSq = dx * dx + dy * dy || 1
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq
+    t = Clamp(t, 0, 1)
+    const cx = x1 + dx * t
+    const cy = y1 + dy * t
+    return Dist(px, py, cx, cy)
+  }
+
+  function CastLineSpell(x1, y1, x2, y2, damage, width, color, source) {
+    Game.rev5Beams.push({ x1, y1, x2, y2, width, color, life: 0.16 })
+    for (const enemy of Game.enemies.slice()) {
+      if (enemy.type === 'thrall') continue
+      if (SegmentDistance(enemy.x, enemy.y, x1, y1, x2, y2) <= enemy.r + width) {
+        DamageEnemy(enemy, damage, source)
+      }
+    }
+  }
+
+  function CastBlast(x, y, radius, damage, color, source) {
+    Game.rev5Blasts.push({ x, y, radius, color, life: 0.24 })
+    for (const enemy of Game.enemies.slice()) {
+      const dist = Dist(x, y, enemy.x, enemy.y)
+      if (dist <= radius + enemy.r) {
+        DamageEnemy(enemy, damage * (1 - Clamp(dist / (radius + enemy.r), 0, 0.75)), source)
+      }
+    }
+  }
+
+  function PullEnemiesTo(x, y, radius, strength) {
+    for (const enemy of Game.enemies) {
+      const dist = Dist(x, y, enemy.x, enemy.y)
+      if (dist > 0 && dist < radius) {
+        const angle = Math.atan2(y - enemy.y, x - enemy.x)
+        enemy.x += Math.cos(angle) * strength
+        enemy.y += Math.sin(angle) * strength
+      }
+    }
+  }
+
+  function SpawnThrallFrom(enemy) {
+    Game.rev5Thralls = Game.rev5Thralls || []
+    const cap = Math.max(0, 1 + Math.floor(Player.stats.summonCap || 0))
+    if (Game.rev5Thralls.length >= cap) return
+
+    Game.rev5Thralls.push({
+      x: enemy.x,
+      y: enemy.y,
+      r: Clamp(enemy.r * 0.65, 8, 18),
+      speed: 136 + (Player.stats.summonCap || 0) * 10,
+      life: 11 + (Player.stats.summonCap || 0) * 2,
+      damage: Player.stats.damage * (0.38 + (Player.stats.thrallDamagePct || 0)),
+      hitCd: 0,
+      color: '#8effcd',
+    })
+  }
+
+  function UpdateRev5Thralls(dt) {
+    if (!Game.rev5Thralls) return
+
+    for (let i = Game.rev5Thralls.length - 1; i >= 0; i--) {
+      const thrall = Game.rev5Thralls[i]
+      thrall.life -= dt
+      thrall.hitCd = Math.max(0, thrall.hitCd - dt)
+
+      if (thrall.life <= 0) {
+        Game.rev5Thralls.splice(i, 1)
+        continue
+      }
+
+      const target = FindNearestEnemy(thrall.x, thrall.y)
+      if (target) {
+        const angle = Math.atan2(target.y - thrall.y, target.x - thrall.x)
+        thrall.x += Math.cos(angle) * thrall.speed * dt
+        thrall.y += Math.sin(angle) * thrall.speed * dt
+
+        if (Dist(thrall.x, thrall.y, target.x, target.y) < thrall.r + target.r + 8 && thrall.hitCd <= 0) {
+          thrall.hitCd = 0.34
+          DamageEnemy(target, thrall.damage, 'thrall')
+        }
+      } else {
+        thrall.y -= 42 * dt
+      }
+    }
+  }
+
+  const OriginalResetRunRev5 = ResetRun
+  ResetRun = function() {
+    OriginalResetRunRev5()
+    Game.rev5Beams = []
+    Game.rev5Blasts = []
+    Game.rev5Thralls = []
+    Game.rev5Cooldowns = { purple: 0, worldCut: 0 }
+  }
+
+  const OriginalDamageEnemyRev5 = DamageEnemy
+  DamageEnemy = function(enemy, rawDamage, source) {
+    if (!enemy || enemy.hp <= 0) {
+      return false
+    }
+
+    let damage = rawDamage
+    let crit = false
+    let blackFlash = false
+    const offensive = !['dot', 'well', 'storm', 'bloodAura', 'hazard'].includes(source)
+
+    if (offensive && Player.stats.ratioStrike > 0 && enemy.hp / Math.max(1, enemy.maxHp) > 0.7) {
+      damage *= 1 + Player.stats.ratioStrike
+    }
+
+    if (Math.random() < Player.stats.crit) {
+      crit = true
+      damage *= Player.stats.critMult
+    }
+
+    if (offensive && Player.stats.blackFlashChance > 0 && Math.random() < Player.stats.blackFlashChance) {
+      blackFlash = true
+      crit = true
+      damage *= 2.05
+    }
+
+    if (enemy.elite || enemy.type === 'boss') {
+      damage *= 1 + Player.stats.bossDamagePct
+    }
+
+    enemy.hp -= damage
+    Game.score += damage * 0.35
+    SpawnFloater(enemy.x, enemy.y - enemy.r - 8, Math.round(damage) + (blackFlash ? ' BF' : crit ? '!' : ''), blackFlash ? '#b08cff' : crit ? '#ffd76a' : '#ffffff')
+
+    if (blackFlash) {
+      SpawnParticle(enemy.x, enemy.y, '#b08cff', 14, 110)
+    }
+
+    if (Player.stats.lifesteal > 0) {
+      Player.hp = Clamp(Player.hp + damage * Player.stats.lifesteal, 0, Player.maxHp)
+    }
+
+    if (Math.random() < Player.stats.burnChance) {
+      ApplyStatus(enemy, 'burn', 2.6, Player.stats.damage * (0.16 + Player.stats.burnPower))
+    }
+
+    if (Math.random() < Player.stats.poisonChance) {
+      ApplyStatus(enemy, 'poison', 3.8, Player.stats.damage * (0.12 + Player.stats.poisonPower))
+    }
+
+    if (Math.random() < Player.stats.bleedChance) {
+      ApplyStatus(enemy, 'bleed', 2.4, Player.stats.damage * (0.12 + Player.stats.bleedPower))
+    }
+
+    if (Math.random() < Player.stats.chillChance) {
+      ApplyStatus(enemy, 'chill', 2.2, 0.22 + Player.stats.chillPower)
+      if (Math.random() < Player.stats.freezeChance) {
+        ApplyStatus(enemy, 'freeze', 0.8, 1)
+      }
+    }
+
+    if (Math.random() < Player.stats.shockChance || Math.random() < Player.stats.chainChance) {
+      ChainShock(enemy, damage * (0.48 + Player.stats.chainDamagePct), 1 + Player.stats.chainCount)
+    }
+
+    if (enemy.hp <= 0) {
+      KillEnemy(enemy, source)
+      return true
+    }
+
+    return false
+  }
+
+  const OriginalKillEnemyRev5 = KillEnemy
+  KillEnemy = function(enemy, source) {
+    const canRaise =
+      Game.mode === 'playing' &&
+      enemy &&
+      enemy.type === 'enemy' &&
+      source !== 'thrall' &&
+      (Player.stats.reviveChance || 0) > 0 &&
+      Math.random() < Player.stats.reviveChance
+
+    const snapshot = enemy ? { x: enemy.x, y: enemy.y, r: enemy.r } : null
+
+    OriginalKillEnemyRev5(enemy, source)
+
+    if (canRaise && snapshot) {
+      SpawnThrallFrom(snapshot)
+    }
+  }
+
+  const OriginalFireAutoShotRev5 = FireAutoShot
+  FireAutoShot = function() {
+    if (Game.mode !== 'playing') return
+
+    const frameId = GetSelectedClassId()
+
+    if (frameId === 'mage') {
+      if (Player.fireCd > 0) return
+      const target = FindNearestEnemy(Player.x, Player.y)
+      if (!target) return
+
+      Player.fireCd = 1 / Math.max(0.8, Player.stats.fireRate * 0.78)
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      const length = Player.stats.range * 0.86
+      const x2 = Player.x + Math.cos(angle) * length
+      const y2 = Player.y + Math.sin(angle) * length
+      CastLineSpell(Player.x, Player.y, x2, y2, Player.stats.damage * (1.1 + (Player.stats.beamWidth || 0) * 0.14), 14 + (Player.stats.beamWidth || 0) * 10, '#c9b7ff', 'beam')
+      SpawnParticle(Player.x, Player.y, '#c9b7ff', 12, 90)
+      return
+    }
+
+    if (frameId === 'swordsman') {
+      if (Player.fireCd > 0) return
+      const target = FindNearestEnemy(Player.x, Player.y)
+      if (!target) return
+      if (Dist(Player.x, Player.y, target.x, target.y) > (Player.stats.swordRange || 120) + 24) return
+
+      Player.fireCd = 0.42 / Math.max(0.8, Player.stats.fireRate)
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      const range = (Player.stats.swordRange || 120)
+      Game.rev5Blasts.push({ x: Player.x, y: Player.y, radius: range * 0.58, color: 'rgba(255, 188, 145, 0.3)', life: 0.12, angle, arc: 1 })
+      for (const enemy of Game.enemies.slice()) {
+        const dist = Dist(Player.x, Player.y, enemy.x, enemy.y)
+        if (dist > range + enemy.r) continue
+        const enemyAngle = Math.atan2(enemy.y - Player.y, enemy.x - Player.x)
+        let diff = Math.abs(Math.atan2(Math.sin(enemyAngle - angle), Math.cos(enemyAngle - angle)))
+        if (diff < 0.7) {
+          DamageEnemy(enemy, Player.stats.damage * (1.08 + (Player.stats.swordEcho || 0) * 0.15), 'sword')
+        }
+      }
+
+      if (Player.stats.swordWave > 0) {
+        SpawnBullet(Player.x, Player.y, angle, Player.stats.damage * 0.7, 'player', { color: '#ffd5bc', size: 7, speed: Player.stats.bulletSpeed * 0.9, life: 0.5 })
+      }
+
+      return
+    }
+
+    OriginalFireAutoShotRev5()
+
+    const target = FindNearestEnemy(Player.x, Player.y)
+    if (!target) return
+
+    if (Player.stats.shrineSlash > 0 && Math.random() < Player.stats.shrineSlash) {
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      CastLineSpell(Player.x, Player.y, Player.x + Math.cos(angle) * 220, Player.y + Math.sin(angle) * 220, Player.stats.damage * 0.8, 8, '#f7f4ff', 'shrine')
+    }
+
+    if (Player.stats.bluePull > 0 && Math.random() < 0.16) {
+      PullEnemiesTo(target.x, target.y, 110 + Player.stats.bluePull * 20, 10 + Player.stats.bluePull * 6)
+    }
+
+    if (Player.stats.bloodLance > 0 && Math.random() < 0.14) {
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      CastLineSpell(Player.x, Player.y, Player.x + Math.cos(angle) * 300, Player.y + Math.sin(angle) * 300, Player.stats.damage * 0.82, 6, '#ff7f89', 'blood')
+    }
+  }
+
+  const OriginalTriggerDashRev5 = TriggerDash
+  TriggerDash = function() {
+    const frameId = GetSelectedClassId()
+
+    if (frameId === 'swordsman') {
+      if (Game.mode !== 'playing') return
+      if (Player.dashCd > 0 || Player.dashTime > 0) return
+
+      let dx = 0
+      let dy = 0
+      if (Input.left) dx -= 1
+      if (Input.right) dx += 1
+      if (Input.up) dy -= 1
+      if (Input.down) dy += 1
+
+      if (dx === 0 && dy === 0) {
+        const target = FindNearestEnemy(Player.x, Player.y)
+        if (target) {
+          dx = target.x - Player.x
+          dy = target.y - Player.y
+        } else {
+          dy = -1
+        }
+      }
+
+      const mag = Math.hypot(dx, dy) || 1
+      dx /= mag
+      dy /= mag
+
+      const startX = Player.x
+      const startY = Player.y
+      Player.dashDirX = dx
+      Player.dashDirY = dy
+      Player.dashTime = 0.17
+      Player.invuln = Player.stats.dashInvuln + 0.06
+      Player.dashCd = Math.max(0.55, Player.stats.dashCd * 0.9)
+      Player.vx = dx * (Player.stats.dashPower * 1.15)
+      Player.vy = dy * (Player.stats.dashPower * 1.15)
+
+      const endX = startX + dx * (100 + (Player.stats.swordRange || 110) * 0.3)
+      const endY = startY + dy * (100 + (Player.stats.swordRange || 110) * 0.3)
+      CastLineSpell(startX, startY, endX, endY, Player.stats.damage * 1.25, 20, '#ffd7ba', 'lunge')
+      SpawnParticle(Player.x, Player.y, '#ffd7ba', 22, 140)
+      return
+    }
+
+    OriginalTriggerDashRev5()
+
+    if (Game.mode !== 'playing') return
+
+    if (Player.stats.swapStep > 0) {
+      const target = FindNearestEnemy(Player.x, Player.y)
+      if (target && Dist(Player.x, Player.y, target.x, target.y) < 260) {
+        const oldX = Player.x
+        const oldY = Player.y
+        Player.x = target.x
+        Player.y = target.y
+        target.x = oldX
+        target.y = oldY
+        SpawnParticle(Player.x, Player.y, '#7dcfff', 12, 90)
+        SpawnParticle(target.x, target.y, '#ffdd82', 12, 90)
+      }
+    }
+
+    if (Player.stats.redBlast > 0) {
+      CastBlast(Player.x, Player.y, 68 + Player.stats.redBlast * 16, Player.stats.damage * 0.95, 'rgba(255, 110, 110, 0.32)', 'red')
+    }
+  }
+
+  const OriginalUpdateWaveSpawnerRev5 = UpdateWaveSpawner
+  UpdateWaveSpawner = function(dt) {
+    if (Game.mode !== 'playing') return
+
+    if (Game.waveState === 'pregame') {
+      QueueNextWave(0.45)
+      return
+    }
+
+    if (Game.waveState === 'intermission') {
+      Game.waveCooldown -= dt
+      if (Game.waveCooldown <= 0) {
+        StartNextWave()
+      }
+      return
+    }
+
+    if (Game.waveState === 'boss') return
+
+    if (Game.waveState === 'spawning') {
+      const plan = GetWavePlan(Game.stage, Game.wave)
+      Game.waveSpawnCd -= dt
+
+      while (Game.waveSpawnsLeft > 0 && Game.waveSpawnCd <= 0) {
+        SpawnWaveEnemy(plan)
+        Game.waveSpawnsLeft -= 1
+        Game.waveSpawnCd += plan.cadence
+      }
+
+      if (Game.waveSpawnsLeft <= 0) {
+        Game.waveState = 'cleanup'
+      }
+    }
+
+    const hostiles = Game.enemies.filter(enemy => enemy.type !== 'thrall').length
+    if (Game.waveState === 'cleanup' && Game.waveSpawnsLeft <= 0 && hostiles === 0 && !Game.bossSpawned) {
+      Player.shield = Clamp(Player.shield + 6, 0, Player.maxShield)
+      Player.hp = Clamp(Player.hp + Player.maxHp * 0.04, 0, Player.maxHp)
+      QueueNextWave(Game.wave % 10 === 0 ? 1.8 : 1.05)
+    }
+  }
+
+  const OriginalUpdateRev5 = Update
+  Update = function(dt) {
+    OriginalUpdateRev5(dt)
+
+    if (!Game.rev5Cooldowns) {
+      Game.rev5Cooldowns = { purple: 0, worldCut: 0 }
+    }
+
+    if (Game.rev5Beams) {
+      for (let i = Game.rev5Beams.length - 1; i >= 0; i--) {
+        Game.rev5Beams[i].life -= dt
+        if (Game.rev5Beams[i].life <= 0) Game.rev5Beams.splice(i, 1)
+      }
+    }
+
+    if (Game.rev5Blasts) {
+      for (let i = Game.rev5Blasts.length - 1; i >= 0; i--) {
+        Game.rev5Blasts[i].life -= dt
+        if (Game.rev5Blasts[i].life <= 0) Game.rev5Blasts.splice(i, 1)
+      }
+    }
+
+    UpdateRev5Thralls(dt)
+
+    if (Game.mode !== 'playing') return
+
+    Game.rev5Cooldowns.purple = Math.max(0, Game.rev5Cooldowns.purple - dt)
+    Game.rev5Cooldowns.worldCut = Math.max(0, Game.rev5Cooldowns.worldCut - dt)
+
+    const target = FindNearestEnemy(Player.x, Player.y)
+    if (!target) return
+
+    if (Player.stats.worldCut > 0 && Game.rev5Cooldowns.worldCut <= 0) {
+      Game.rev5Cooldowns.worldCut = 4.8
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      CastLineSpell(Player.x, Player.y, Player.x + Math.cos(angle) * 340, Player.y + Math.sin(angle) * 340, Player.stats.damage * 2.2, 12, '#ffffff', 'worldCut')
+      SpawnParticle(Player.x, Player.y, '#ffffff', 16, 120)
+    }
+
+    if (Player.stats.purple > 0 && Game.rev5Cooldowns.purple <= 0) {
+      Game.rev5Cooldowns.purple = 7.4
+      const angle = Math.atan2(target.y - Player.y, target.x - Player.x)
+      CastLineSpell(Player.x, Player.y, Player.x + Math.cos(angle) * 420, Player.y + Math.sin(angle) * 420, Player.stats.damage * 3.1, 18, '#c59bff', 'purple')
+      CastBlast(target.x, target.y, 96, Player.stats.damage * 1.4, 'rgba(181, 128, 255, 0.26)', 'purple')
+    }
+
+    if (Player.stats.shadowGarden > 0 && Math.floor((Game.time - dt) * 0.42) !== Math.floor(Game.time * 0.42)) {
+      PullEnemiesTo(Player.x, Player.y, 140, 10)
+    }
+  }
+
+  const OriginalDrawRev5 = Draw
+  Draw = function() {
+    OriginalDrawRev5()
+
+    if (Game.rev5Beams) {
+      for (const beam of Game.rev5Beams) {
+        Ctx.save()
+        Ctx.strokeStyle = beam.color
+        Ctx.globalAlpha = Clamp(beam.life / 0.16, 0, 1)
+        Ctx.lineWidth = beam.width
+        Ctx.lineCap = 'round'
+        Ctx.shadowBlur = 16
+        Ctx.shadowColor = beam.color
+        Ctx.beginPath()
+        Ctx.moveTo(beam.x1, beam.y1)
+        Ctx.lineTo(beam.x2, beam.y2)
+        Ctx.stroke()
+        Ctx.restore()
+      }
+    }
+
+    if (Game.rev5Blasts) {
+      for (const blast of Game.rev5Blasts) {
+        Ctx.save()
+        Ctx.globalAlpha = Clamp(blast.life / 0.24, 0, 1) * 0.7
+        Ctx.strokeStyle = blast.color.includes('rgba') ? blast.color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgb($1,$2,$3)') : '#ffffff'
+        Ctx.fillStyle = blast.color
+        Ctx.lineWidth = 3
+        Ctx.beginPath()
+        Ctx.arc(blast.x, blast.y, blast.radius * (1 - blast.life / 0.24 * 0.2), 0, Math.PI * 2)
+        Ctx.fill()
+        Ctx.stroke()
+        Ctx.restore()
+      }
+    }
+
+    if (Game.rev5Thralls) {
+      for (const thrall of Game.rev5Thralls) {
+        Ctx.save()
+        Ctx.translate(thrall.x, thrall.y)
+        Ctx.globalAlpha = Clamp(thrall.life / 2, 0.28, 0.88)
+        Ctx.fillStyle = thrall.color
+        Ctx.shadowBlur = 18
+        Ctx.shadowColor = thrall.color
+        Ctx.beginPath()
+        Ctx.arc(0, 0, thrall.r, 0, Math.PI * 2)
+        Ctx.fill()
+        Ctx.fillStyle = '#f4fff9'
+        Ctx.beginPath()
+        Ctx.arc(-thrall.r * 0.24, -thrall.r * 0.1, Math.max(1.5, thrall.r * 0.12), 0, Math.PI * 2)
+        Ctx.arc(thrall.r * 0.24, -thrall.r * 0.1, Math.max(1.5, thrall.r * 0.12), 0, Math.PI * 2)
+        Ctx.fill()
+        Ctx.restore()
+      }
+    }
+  }
+
+  RenderClasses()
+  RenderPacks()
+  UpdateMenuSummary()
+})()
+</script>
+
+
+
+<style id="rev6PatchStyle">
+  .rev6FrameGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rev6FrameCard {
+    position: relative;
+    overflow: hidden;
+    min-height: 182px;
+    padding: 16px;
+    text-align: left;
+  }
+
+  .rev6FrameCard .lockVeil {
+    position: absolute;
+    inset: auto 10px 10px 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(7, 10, 22, 0.84);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #cdd8ff;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .rev6FrameCard .lockTitle {
+    color: #ffd76a;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .rev6FrameCard .unlockChip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(8, 12, 24, 0.76);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #dbe7ff;
+  }
+
+  .rev6FrameCard.locked .unlockChip {
+    color: #ffd76a;
+  }
+
+  .rev6FrameCard .classPreview {
+    margin-bottom: 10px;
+  }
+
+  .rev6PackShell {
+    display: grid;
+    gap: 14px;
+  }
+
+  .rev6PackBar {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rev6PackMarks {
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .rev6PacksGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .rev6PackCard {
+    position: relative;
+    overflow: hidden;
+    padding: 18px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(12, 19, 42, 0.98), rgba(18, 11, 34, 0.96));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.26);
+  }
+
+  .rev6PackCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 18% 18%, rgba(80, 207, 255, 0.18), transparent 26%), radial-gradient(circle at 82% 20%, rgba(160, 112, 255, 0.2), transparent 24%);
+    pointer-events: none;
+  }
+
+  .rev6PackHead {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .rev6PackName {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 4px;
+  }
+
+  .rev6PackCost {
+    margin-top: 10px;
+    color: #dce6ff;
+    font-size: 13px;
+  }
+
+  .rev6PackTags {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rev6PackTags span {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: #dce7ff;
+  }
+
+  .rev6PackActions {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 1180px) {
+    .rev6FrameGrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .rev6PacksGrid,
+    .rev6FrameGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rev6PacksGrid,
+    .rev6FrameGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+<script>
+(() => {
+  const packPage = document.querySelector('.menuPage[data-page="packs"]')
+  if (packPage) {
+    packPage.innerHTML = `
+      <div class="rev6PackShell">
+        <div class="panel rev6PackBar">
+          <div>
+            <div class="tiny">Packs</div>
+            <div class="rev6PackMarks" id="rev6PackMarks">0 Sky Marks</div>
+          </div>
+        </div>
+        <div class="rev6PacksGrid" id="packsGrid"></div>
+      </div>
+    `
+  }
+
+  ClassGrid.parentElement?.querySelector('.sectionText')?.remove()
+
+  const Rev6FrameIds = () => {
+    const base = typeof Rev5BaseFrames !== 'undefined' ? Rev5BaseFrames : ClassDefs.map(classDef => classDef.id)
+    const extras = typeof Rev5FrameUnlocks !== 'undefined' ? Object.keys(Rev5FrameUnlocks) : []
+    return [...base, ...extras]
+  }
+
+  const Rev6Preview = frameId => {
+    if (typeof Rev5BuildClassPreview === 'function') return Rev5BuildClassPreview(frameId)
+    if (typeof BuildClassPreview === 'function') return BuildClassPreview(frameId)
+    return ''
+  }
+
+  const Rev6Unlocked = frameId => typeof IsFrameUnlocked === 'function' ? IsFrameUnlocked(frameId) : true
+
+  RenderClasses = function() {
+    ClassGrid.innerHTML = ''
+    ClassGrid.className = 'classGrid rev6FrameGrid'
+
+    const selectedId = typeof GetSelectedClassId === 'function' ? GetSelectedClassId() : Meta.selectedClass
+
+    for (const id of Rev6FrameIds()) {
+      const frameDef = ClassById[id]
+      if (!frameDef) continue
+
+      const unlocked = Rev6Unlocked(id)
+      const selected = selectedId === id && unlocked
+      const card = document.createElement('button')
+      card.type = 'button'
+      card.className = 'classCard compact rev6FrameCard' + (selected ? ' selected' : '') + (unlocked ? '' : ' locked')
+      card.innerHTML = `
+        <div class="unlockChip">${unlocked ? frameDef.role : 'Stage ' + (Rev5FrameUnlocks?.[id] || '?')}</div>
+        ${Rev6Preview(frameDef.id)}
+        <div class="classHead">
+          <div>
+            <div class="classRole">${frameDef.role}</div>
+            <div class="className">${frameDef.name}</div>
+          </div>
+        </div>
+        ${unlocked ? '' : `<div class="lockVeil"><div class="lockTitle">Locked Frame</div>Clear Stage ${Rev5FrameUnlocks?.[id] || '?'} to unlock this frame.</div>`}
+      `
+
+      card.addEventListener('click', () => {
+        if (typeof SelectClass === 'function') SelectClass(frameDef.id)
+        RenderClasses()
+        if (typeof UpdateMenuSummary === 'function') UpdateMenuSummary()
+        if (typeof SaveMeta === 'function') SaveMeta()
+      })
+
+      if (typeof ShowFrameTooltip === 'function') {
+        card.addEventListener('mouseenter', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+        card.addEventListener('mousemove', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+      }
+
+      if (typeof Rev5HideClassTooltip === 'function') {
+        card.addEventListener('mouseleave', Rev5HideClassTooltip)
+        card.addEventListener('blur', Rev5HideClassTooltip)
+      }
+
+      ClassGrid.appendChild(card)
+    }
+  }
+
+  const Rev6BasePackRender = typeof RenderPacks === 'function' ? RenderPacks : null
+  RenderPacks = function() {
+    if (typeof EnsureRev5Meta === 'function') EnsureRev5Meta()
+
+    const marksText = document.getElementById('rev6PackMarks')
+    if (marksText) marksText.textContent = (Meta.echoes || 0) + ' Sky Marks'
+
+    const grid = document.getElementById('packsGrid')
+    if (!grid || typeof Rev5PackDefs === 'undefined') return
+
+    grid.innerHTML = ''
+
+    for (const pack of Rev5PackDefs) {
+      const state = typeof GetPackState === 'function' ? GetPackState(pack.id) : (Meta.packs?.[pack.id] || { owned: false, enabled: false })
+      const card = document.createElement('div')
+      card.className = 'rev6PackCard'
+      card.innerHTML = `
+        <div class="rev6PackHead">
+          <div>
+            <div class="tiny">Pack</div>
+            <div class="rev6PackName">${pack.name}</div>
+            <div class="rev6PackCost">${state.owned ? 'Purchased' : pack.cost + ' Sky Marks'}</div>
+          </div>
+          <div class="packBadge">${pack.badge}</div>
+        </div>
+        <div class="rev6PackTags">${pack.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+      `
+
+      const actions = document.createElement('div')
+      actions.className = 'rev6PackActions'
+
+      const primary = document.createElement('button')
+      primary.type = 'button'
+      primary.className = state.owned ? (state.enabled ? 'primary' : 'secondary') : 'primary'
+      primary.textContent = state.owned ? (state.enabled ? 'Disable' : 'Enable') : 'Unlock'
+      primary.disabled = !state.owned && (Meta.echoes || 0) < pack.cost
+      primary.addEventListener('click', () => {
+        if (state.owned) {
+          if (typeof TogglePack === 'function') TogglePack(pack.id)
+        } else {
+          if (typeof PurchasePack === 'function') PurchasePack(pack.id)
+        }
+        RenderPacks()
+        if (typeof UpdateMenuSummary === 'function') UpdateMenuSummary()
+        if (typeof SaveMeta === 'function') SaveMeta()
+      })
+      actions.appendChild(primary)
+
+      const secondary = document.createElement('button')
+      secondary.type = 'button'
+      secondary.className = 'secondary'
+      secondary.disabled = true
+      secondary.textContent = state.owned ? (state.enabled ? 'Active' : 'Inactive') : 'Need ' + Math.max(0, pack.cost - (Meta.echoes || 0)) + ' More'
+      actions.appendChild(secondary)
+
+      card.appendChild(actions)
+      grid.appendChild(card)
+    }
+  }
+
+  const Rev6BaseUpdateMenuSummary = typeof UpdateMenuSummary === 'function' ? UpdateMenuSummary : null
+  UpdateMenuSummary = function() {
+    if (Rev6BaseUpdateMenuSummary) Rev6BaseUpdateMenuSummary()
+
+    const marksText = document.getElementById('rev6PackMarks')
+    if (marksText) marksText.textContent = (Meta.echoes || 0) + ' Sky Marks'
+  }
+
+  if (typeof EnsureRev5Meta === 'function') EnsureRev5Meta()
+  RenderClasses()
+  RenderPacks()
+  UpdateMenuSummary()
+  if (typeof SaveMeta === 'function') SaveMeta()
+})()
+</script>
+
+<style id="rev7PatchStyle">
+  .classGrid.rev7FrameGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .rev7FrameCard {
+    position: relative;
+    min-height: 214px;
+    padding: 14px 14px 16px;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  .rev7FrameCard .unlockChip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(8, 12, 24, 0.74);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #deebff;
+  }
+
+  .rev7FrameCard.locked .unlockChip {
+    color: #ffd76a;
+  }
+
+  .rev7FrameCard .classHead {
+    position: relative;
+    z-index: 2;
+  }
+
+  .rev7FrameCard .lockVeil {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 4;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(6, 10, 22, 0.88);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #d2dcff;
+    font-size: 12px;
+    line-height: 1.42;
+  }
+
+  .rev7FrameCard .lockTitle {
+    margin-bottom: 4px;
+    color: #ffd76a;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .rev7FrameIcon {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 120px;
+    margin: 10px 0 12px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.07);
+    background:
+      radial-gradient(circle at 50% 22%, rgba(255,255,255,0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    --ship-a: #79e7ff;
+    --ship-b: #dff8ff;
+    --glow: rgba(121, 231, 255, 0.26);
+    --trim: rgba(255,255,255,0.18);
+  }
+
+  .rev7FrameIcon::before {
+    content: '';
+    position: absolute;
+    inset: -20% 14% 36%;
+    background: radial-gradient(circle, var(--glow), transparent 72%);
+    filter: blur(12px);
+    pointer-events: none;
+  }
+
+  .rev7FrameIcon svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 10px 16px rgba(0,0,0,0.24));
+  }
+
+  .rev7FrameIcon .bodyMain {
+    fill: var(--ship-a);
+    fill-opacity: 0.92;
+    stroke: var(--trim);
+    stroke-width: 1.2;
+  }
+
+  .rev7FrameIcon .bodySoft {
+    fill: var(--ship-b);
+    fill-opacity: 0.72;
+    stroke: var(--trim);
+    stroke-width: 1.1;
+  }
+
+  .rev7FrameIcon .core {
+    fill: var(--ship-b);
+    fill-opacity: 0.95;
+  }
+
+  .rev7FrameIcon .accentLine {
+    stroke: var(--ship-b);
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-opacity: 0.9;
+  }
+
+  .rev7FrameIcon .halo {
+    fill: none;
+    stroke: var(--ship-b);
+    stroke-width: 4;
+    stroke-opacity: 0.38;
+    filter: blur(0.2px);
+  }
+
+  .rev7FrameIcon.strider { --ship-a: #7fe8ff; --ship-b: #e9fbff; --glow: rgba(127, 232, 255, 0.28); }
+  .rev7FrameIcon.marksman { --ship-a: #ffd86b; --ship-b: #fff6d2; --glow: rgba(255, 216, 107, 0.26); }
+  .rev7FrameIcon.smasher { --ship-a: #ff9e7a; --ship-b: #fff0e9; --glow: rgba(255, 153, 120, 0.28); }
+  .rev7FrameIcon.tempest { --ship-a: #af92ff; --ship-b: #f2edff; --glow: rgba(175, 146, 255, 0.30); }
+  .rev7FrameIcon.bastion { --ship-a: #7dffc9; --ship-b: #effff7; --glow: rgba(125, 255, 201, 0.28); }
+  .rev7FrameIcon.necromancer { --ship-a: #6ef7ac; --ship-b: #ebfff2; --glow: rgba(110, 247, 172, 0.30); }
+  .rev7FrameIcon.mage { --ship-a: #cc98ff; --ship-b: #fbf3ff; --glow: rgba(204, 152, 255, 0.32); }
+  .rev7FrameIcon.swordsman { --ship-a: #ff9c8c; --ship-b: #fff0ed; --glow: rgba(255, 156, 140, 0.30); }
+  .rev7FrameIcon.reaper { --ship-a: #84cfff; --ship-b: #eef9ff; --glow: rgba(132, 207, 255, 0.28); }
+  .rev7FrameIcon.artificer { --ship-a: #ffd970; --ship-b: #fff8e4; --glow: rgba(255, 217, 112, 0.28); }
+
+  .rev7PackShell {
+    display: grid;
+    gap: 14px;
+  }
+
+  .rev7PackHeader {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rev7PackMarks {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .rev7PacksGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .rev7PackCard {
+    position: relative;
+    overflow: hidden;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      radial-gradient(circle at 18% 18%, rgba(86, 208, 255, 0.18), transparent 24%),
+      radial-gradient(circle at 82% 20%, rgba(174, 116, 255, 0.18), transparent 22%),
+      linear-gradient(135deg, rgba(12, 20, 46, 0.98), rgba(20, 11, 34, 0.96));
+    box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+  }
+
+  .rev7PackHead {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .rev7PackName {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 6px;
+  }
+
+  .rev7PackArt {
+    width: 90px;
+    height: 90px;
+    flex: 0 0 90px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      radial-gradient(circle at 34% 28%, rgba(255,255,255,0.18), transparent 22%),
+      linear-gradient(135deg, rgba(47, 22, 74, 0.96), rgba(17, 11, 28, 0.92));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rev7PackArt::before,
+  .rev7PackArt::after {
+    content: '';
+    position: absolute;
+    inset: auto;
+    border-radius: 999px;
+    filter: blur(0.4px);
+  }
+
+  .rev7PackArt.jjk::before {
+    width: 48px;
+    height: 48px;
+    left: 16px;
+    top: 16px;
+    background: radial-gradient(circle, rgba(111, 196, 255, 0.95), rgba(111,196,255,0.18) 62%, transparent 72%);
+    box-shadow: 14px 16px 0 0 rgba(255, 108, 108, 0.62);
+  }
+
+  .rev7PackArt.jjk::after {
+    width: 76px;
+    height: 2px;
+    left: 8px;
+    top: 44px;
+    background: linear-gradient(90deg, transparent, rgba(246, 234, 255, 0.9), transparent);
+    transform: rotate(-22deg);
+  }
+
+  .rev7PackCost {
+    margin-top: 12px;
+    color: #dce7ff;
+    font-size: 13px;
+  }
+
+  .rev7PackTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .rev7PackTags span {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #deebff;
+    font-size: 12px;
+  }
+
+  .rev7PackActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 1180px) {
+    .classGrid.rev7FrameGrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .classGrid.rev7FrameGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .classGrid.rev7FrameGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .rev7PackHead {
+      flex-direction: column;
+    }
+
+    .rev7PackArt {
+      width: 100%;
+      flex-basis: 76px;
+      height: 76px;
+    }
+  }
+</style>
+<script id="rev7PatchScript">
+(() => {
+  const makeFrameSvg = frameId => {
+    const svgs = {
+      strider: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 28 Q116 42 123 64 Q116 88 80 94 Q44 88 37 64 Q44 42 80 28Z"></path>
+          <path class="bodyMain" d="M80 20 L98 44 L114 48 L96 78 L88 96 L72 96 L64 78 L46 48 L62 44 Z"></path>
+          <path class="bodySoft" d="M58 49 L39 74 L54 82 L70 61 Z"></path>
+          <path class="bodySoft" d="M102 49 L121 74 L106 82 L90 61 Z"></path>
+          <rect class="core" x="73.5" y="40" width="13" height="34" rx="6"></rect>
+          <path class="accentLine" d="M80 27 L80 96"></path>
+          <path class="accentLine" d="M58 50 L39 74"></path>
+          <path class="accentLine" d="M102 50 L121 74"></path>
+        </svg>
+      `,
+      marksman: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 26 Q122 34 130 62 Q122 90 80 98 Q38 90 30 62 Q38 34 80 26Z"></path>
+          <path class="bodyMain" d="M80 18 L90 36 L106 40 L96 64 L88 98 L72 98 L64 64 L54 40 L70 36 Z"></path>
+          <path class="bodySoft" d="M53 42 L25 56 L33 72 L63 58 Z"></path>
+          <path class="bodySoft" d="M107 42 L135 56 L127 72 L97 58 Z"></path>
+          <circle class="core" cx="80" cy="48" r="8"></circle>
+          <path class="accentLine" d="M80 19 L80 99"></path>
+          <path class="accentLine" d="M33 64 L63 58"></path>
+          <path class="accentLine" d="M127 64 L97 58"></path>
+        </svg>
+      `,
+      smasher: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q120 40 120 63 Q120 86 80 96 Q40 86 40 63 Q40 40 80 24Z"></path>
+          <path class="bodyMain" d="M80 18 L102 34 L116 60 L98 86 L62 86 L44 60 L58 34 Z"></path>
+          <path class="bodySoft" d="M44 48 L26 72 L48 82 L62 60 Z"></path>
+          <path class="bodySoft" d="M116 48 L134 72 L112 82 L98 60 Z"></path>
+          <rect class="core" x="70" y="38" width="20" height="26" rx="8"></rect>
+          <path class="accentLine" d="M61 87 L99 87"></path>
+          <path class="accentLine" d="M80 18 L80 86"></path>
+        </svg>
+      `,
+      tempest: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 22 Q121 36 126 63 Q121 90 80 96 Q39 90 34 63 Q39 36 80 22Z"></path>
+          <path class="bodyMain" d="M80 18 L96 36 L108 58 L92 82 L68 82 L52 58 L64 36 Z"></path>
+          <path class="bodySoft" d="M49 42 C31 54 30 73 47 85 L69 72 C55 64 51 54 49 42Z"></path>
+          <path class="bodySoft" d="M111 42 C129 54 130 73 113 85 L91 72 C105 64 109 54 111 42Z"></path>
+          <circle class="core" cx="80" cy="48" r="9"></circle>
+          <path class="accentLine" d="M49 42 C31 54 30 73 47 85"></path>
+          <path class="accentLine" d="M111 42 C129 54 130 73 113 85"></path>
+        </svg>
+      `,
+      bastion: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q124 36 124 66 Q124 92 80 98 Q36 92 36 66 Q36 36 80 24Z"></path>
+          <path class="bodyMain" d="M80 20 L95 32 L102 54 L94 82 L66 82 L58 54 L65 32 Z"></path>
+          <path class="bodySoft" d="M31 47 L58 40 L59 84 L40 86 L26 68 Z"></path>
+          <path class="bodySoft" d="M129 47 L102 40 L101 84 L120 86 L134 68 Z"></path>
+          <rect class="core" x="72" y="38" width="16" height="24" rx="7"></rect>
+          <path class="accentLine" d="M58 40 L59 84"></path>
+          <path class="accentLine" d="M102 40 L101 84"></path>
+        </svg>
+      `,
+      necromancer: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 22 Q120 38 120 65 Q120 92 80 98 Q40 92 40 65 Q40 38 80 22Z"></path>
+          <path class="bodyMain" d="M80 22 L95 34 L102 54 L96 82 L64 82 L58 54 L65 34 Z"></path>
+          <path class="bodySoft" d="M49 36 L34 58 L48 76 L67 58 Z"></path>
+          <path class="bodySoft" d="M111 36 L126 58 L112 76 L93 58 Z"></path>
+          <circle class="core" cx="80" cy="47" r="8"></circle>
+          <path class="accentLine" d="M50 36 L34 58 L48 76"></path>
+          <path class="accentLine" d="M110 36 L126 58 L112 76"></path>
+          <path class="accentLine" d="M72 87 L88 87"></path>
+        </svg>
+      `,
+      mage: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q122 34 128 62 Q122 90 80 98 Q38 90 32 62 Q38 34 80 24Z"></path>
+          <path class="bodyMain" d="M80 20 L93 36 L100 58 L90 86 L70 86 L60 58 L67 36 Z"></path>
+          <path class="bodySoft" d="M48 46 C36 54 33 72 46 84 L66 66 C57 61 52 54 48 46Z"></path>
+          <path class="bodySoft" d="M112 46 C124 54 127 72 114 84 L94 66 C103 61 108 54 112 46Z"></path>
+          <circle class="core" cx="80" cy="46" r="11"></circle>
+          <path class="accentLine" d="M51 44 C61 34 99 34 109 44"></path>
+          <path class="accentLine" d="M80 58 L80 90"></path>
+        </svg>
+      `,
+      swordsman: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q121 36 124 62 Q121 88 80 98 Q39 88 36 62 Q39 36 80 24Z"></path>
+          <path class="bodyMain" d="M80 22 L92 36 L95 57 L88 84 L72 84 L65 57 L68 36 Z"></path>
+          <path class="bodySoft" d="M54 42 L33 67 L49 78 L68 56 Z"></path>
+          <path class="bodySoft" d="M106 42 L127 67 L111 78 L92 56 Z"></path>
+          <rect class="core" x="75" y="18" width="10" height="60" rx="5"></rect>
+          <path class="accentLine" d="M80 18 L80 96"></path>
+          <path class="accentLine" d="M70 84 L90 84"></path>
+        </svg>
+      `,
+      reaper: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q120 38 120 64 Q120 90 80 98 Q40 90 40 64 Q40 38 80 24Z"></path>
+          <path class="bodyMain" d="M80 22 L95 34 L103 53 L94 82 L66 82 L57 53 L65 34 Z"></path>
+          <path class="bodySoft" d="M40 55 C40 36 56 28 72 31 C56 38 53 56 61 70 C50 71 40 66 40 55Z"></path>
+          <path class="bodySoft" d="M120 55 C120 36 104 28 88 31 C104 38 107 56 99 70 C110 71 120 66 120 55Z"></path>
+          <circle class="core" cx="80" cy="47" r="8"></circle>
+          <path class="accentLine" d="M63 87 C72 82 88 82 97 87"></path>
+        </svg>
+      `,
+      artificer: `
+        <svg viewBox="0 0 160 120" aria-hidden="true">
+          <path class="halo" d="M80 24 Q120 36 124 63 Q120 90 80 98 Q40 90 36 63 Q40 36 80 24Z"></path>
+          <path class="bodyMain" d="M80 20 L94 34 L100 54 L92 82 L68 82 L60 54 L66 34 Z"></path>
+          <path class="bodySoft" d="M39 46 L55 46 L63 60 L55 74 L39 74 L31 60 Z"></path>
+          <path class="bodySoft" d="M121 46 L105 46 L97 60 L105 74 L121 74 L129 60 Z"></path>
+          <rect class="core" x="72" y="38" width="16" height="24" rx="6"></rect>
+          <path class="accentLine" d="M39 46 L55 46 L63 60 L55 74 L39 74 L31 60 Z"></path>
+          <path class="accentLine" d="M121 46 L105 46 L97 60 L105 74 L121 74 L129 60 Z"></path>
+        </svg>
+      `
+    }
+    return `<div class="rev7FrameIcon ${frameId}">${svgs[frameId] || svgs.strider}</div>`
+  }
+
+  const ensurePacksPage = () => {
+    let page = document.querySelector('.menuPage[data-page="packs"]')
+    if (!page) {
+      page = document.createElement('div')
+      page.className = 'menuPage'
+      page.dataset.page = 'packs'
+      const settingsPage = document.querySelector('.menuPage[data-page="settings"]')
+      if (settingsPage?.parentNode) {
+        settingsPage.parentNode.insertBefore(page, settingsPage)
+      } else {
+        document.querySelector('.menuMain')?.appendChild(page)
+      }
+      if (Array.isArray(window.MenuPages) && !window.MenuPages.includes(page)) {
+        window.MenuPages.push(page)
+      }
+    }
+
+    page.innerHTML = `
+      <div class="rev7PackShell">
+        <div class="panel rev7PackHeader">
+          <div class="tiny">Packs</div>
+          <div class="rev7PackMarks" id="rev7PackMarks">0 Sky Marks</div>
+        </div>
+        <div class="rev7PacksGrid" id="rev7PacksGrid"></div>
+      </div>
+    `
+    return page
+  }
+
+  const ensurePacksTab = () => {
+    let tab = document.querySelector('.menuTab[data-page="packs"]')
+    const tabsRoot = document.querySelector('.menuTabs')
+    if (!tab && tabsRoot) {
+      tab = document.createElement('button')
+      tab.type = 'button'
+      tab.className = 'menuTab'
+      tab.dataset.page = 'packs'
+      tab.textContent = 'Packs'
+      const hangarTab = document.querySelector('.menuTab[data-page="hangar"]')
+      if (hangarTab?.nextSibling) {
+        tabsRoot.insertBefore(tab, hangarTab.nextSibling)
+      } else {
+        tabsRoot.appendChild(tab)
+      }
+      tab.addEventListener('click', () => {
+        if (typeof SwitchMenuPage === 'function') SwitchMenuPage('packs')
+        if (typeof RenderPacks === 'function') RenderPacks()
+      })
+      if (Array.isArray(window.MenuTabs) && !window.MenuTabs.includes(tab)) {
+        window.MenuTabs.push(tab)
+      }
+    }
+    return tab
+  }
+
+  const baseSelectClass = typeof SelectClass === 'function' ? SelectClass : null
+  RenderClasses = function() {
+    if (typeof ClassGrid === 'undefined' || !ClassGrid) return
+    ClassGrid.innerHTML = ''
+    ClassGrid.className = 'classGrid rev7FrameGrid'
+
+    const ordered = [
+      ...(typeof Rev5BaseFrames !== 'undefined' && Array.isArray(Rev5BaseFrames) ? Rev5BaseFrames : (typeof ClassDefs !== 'undefined' && Array.isArray(ClassDefs) ? ClassDefs.map(frame => frame.id) : [])),
+      ...(typeof Rev5FrameUnlocks !== 'undefined' ? Object.keys(Rev5FrameUnlocks) : [])
+    ]
+
+    const selectedFrameId = typeof GetSelectedClassId === 'function' ? GetSelectedClassId() : (typeof Meta !== 'undefined' ? Meta.selectedClass : null)
+
+    for (const id of ordered) {
+      const frameDef = typeof ClassById !== 'undefined' ? ClassById[id] : null
+      if (!frameDef) continue
+
+      const unlocked = typeof IsFrameUnlocked === 'function' ? IsFrameUnlocked(id) : true
+      const selected = selectedFrameId === id && unlocked
+
+      const card = document.createElement('button')
+      card.type = 'button'
+      card.className = 'classCard compact rev7FrameCard' + (selected ? ' selected' : '') + (unlocked ? '' : ' locked')
+      card.innerHTML = `
+        <div class="unlockChip">${unlocked ? frameDef.role : 'Stage ' + ((typeof Rev5FrameUnlocks !== 'undefined' && Rev5FrameUnlocks[id]) || '?')}</div>
+        ${makeFrameSvg(frameDef.id)}
+        <div class="classHead">
+          <div>
+            <div class="classRole">${frameDef.role}</div>
+            <div class="className">${frameDef.name}</div>
+          </div>
+        </div>
+        ${unlocked ? '' : `<div class="lockVeil"><div class="lockTitle">Locked Frame</div>Clear Stage ${((typeof Rev5FrameUnlocks !== 'undefined' && Rev5FrameUnlocks[id]) || '?')} to unlock this frame.</div>`}
+      `
+
+      card.addEventListener('click', () => {
+        if (baseSelectClass) baseSelectClass(frameDef.id)
+        RenderClasses()
+        if (typeof UpdateMenuSummary === 'function') UpdateMenuSummary()
+      })
+
+      if (typeof ShowFrameTooltip === 'function') {
+        card.addEventListener('mouseenter', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+        card.addEventListener('mousemove', event => ShowFrameTooltip(frameDef, event.clientX, event.clientY))
+      }
+
+      if (typeof Rev5HideClassTooltip === 'function') {
+        card.addEventListener('mouseleave', Rev5HideClassTooltip)
+        card.addEventListener('blur', Rev5HideClassTooltip)
+      }
+
+      ClassGrid.appendChild(card)
+    }
+  }
+
+  RenderPacks = function() {
+    if (typeof EnsureRev5Meta === 'function') EnsureRev5Meta()
+    ensurePacksPage()
+
+    const marks = document.getElementById('rev7PackMarks')
+    if (marks) {
+      marks.textContent = `${(typeof Meta !== 'undefined' && Meta.echoes) || 0} Sky Marks`
+    }
+
+    const grid = document.getElementById('rev7PacksGrid')
+    if (!grid) return
+    grid.innerHTML = ''
+
+    const defs = typeof Rev5PackDefs !== 'undefined' && Array.isArray(Rev5PackDefs) ? Rev5PackDefs : []
+    for (const pack of defs) {
+      const state = typeof GetPackState === 'function'
+        ? GetPackState(pack.id)
+        : ((typeof Meta !== 'undefined' && Meta.packs && Meta.packs[pack.id]) || { owned: false, enabled: false })
+
+      const card = document.createElement('div')
+      card.className = 'rev7PackCard'
+      card.innerHTML = `
+        <div class="rev7PackHead">
+          <div>
+            <div class="tiny">Pack</div>
+            <div class="rev7PackName">${pack.name}</div>
+            <div class="rev7PackCost">${state.owned ? 'Purchased' : pack.cost + ' Sky Marks'}</div>
+            <div class="rev7PackTags">${(pack.tags || []).map(tag => `<span>${tag}</span>`).join('')}</div>
+          </div>
+          <div class="rev7PackArt ${pack.id}"></div>
+        </div>
+      `
+
+      const actions = document.createElement('div')
+      actions.className = 'rev7PackActions'
+
+      const primary = document.createElement('button')
+      primary.type = 'button'
+      primary.className = state.owned ? (state.enabled ? 'primary' : 'secondary') : 'primary'
+      primary.textContent = state.owned ? (state.enabled ? 'Disable' : 'Enable') : 'Unlock'
+      primary.disabled = !state.owned && (((typeof Meta !== 'undefined' && Meta.echoes) || 0) < pack.cost)
+      primary.addEventListener('click', () => {
+        if (state.owned) {
+          if (typeof TogglePack === 'function') TogglePack(pack.id)
+        } else {
+          if (typeof PurchasePack === 'function') PurchasePack(pack.id)
+        }
+        RenderPacks()
+        if (typeof UpdateMenuSummary === 'function') UpdateMenuSummary()
+      })
+      actions.appendChild(primary)
+
+      const secondary = document.createElement('button')
+      secondary.type = 'button'
+      secondary.className = 'secondary'
+      secondary.disabled = true
+      secondary.textContent = state.owned ? (state.enabled ? 'Active' : 'Inactive') : `Need ${Math.max(0, pack.cost - (((typeof Meta !== 'undefined' && Meta.echoes) || 0)))} More`
+      actions.appendChild(secondary)
+
+      card.appendChild(actions)
+      grid.appendChild(card)
+    }
+  }
+
+  const baseSwitchMenuPage = typeof SwitchMenuPage === 'function' ? SwitchMenuPage : null
+  SwitchMenuPage = function(page) {
+    if (baseSwitchMenuPage) baseSwitchMenuPage(page)
+    if (page === 'packs') {
+      RenderPacks()
+    } else if (page === 'run') {
+      RenderClasses()
+    }
+  }
+
+  const baseUpdateMenuSummary = typeof UpdateMenuSummary === 'function' ? UpdateMenuSummary : null
+  UpdateMenuSummary = function() {
+    if (baseUpdateMenuSummary) baseUpdateMenuSummary()
+    const marks = document.getElementById('rev7PackMarks')
+    if (marks) {
+      marks.textContent = `${(typeof Meta !== 'undefined' && Meta.echoes) || 0} Sky Marks`
+    }
+  }
+
+  ensurePacksTab()
+  ensurePacksPage()
+  RenderClasses()
+  RenderPacks()
+  UpdateMenuSummary()
 })()
 </script>
 
